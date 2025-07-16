@@ -6,7 +6,9 @@ import mysql, { Connection,Pool } from "mysql2";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv';
+import Db from "./db";
 
+const lv_Db = new Db();
 // .env 파일에서 환경 변수 로드
 dotenv.config();
 
@@ -18,8 +20,7 @@ declare global {
   }
 
   interface MyApp {        
-    db: Pool;        
-    checkSession:(req: Request, res: Response, next: NextFunction)=>void;
+    db: Pool;            
   }
 }
 
@@ -36,6 +37,10 @@ declare module 'express-serve-static-core' {
   interface Request {
     session: session.Session & Partial<session.SessionData>;
   }
+}
+
+process._myApp = {
+  db:mysql.createPool(lv_Db.pt_Data.DB),
 }
 
 //https://expressjs.com/ko/starter/static-files.html s
@@ -60,7 +65,10 @@ const sessionMiddleware = session({
 
 app.use(sessionMiddleware);
 app.use("/data", express.static(path.join(__dirname, "../../data")));
-app.use(express.static(path.join(__dirname, '../wavesurfer')));
+app.use(
+  "/assets",                                   //  /assets/* 요청
+  express.static(path.join(__dirname, "../assets"))
+);
 
 // ② React 번들의 정적 파일
 app.use(
@@ -69,6 +77,8 @@ app.use(
   })
 );
 
+import subscription from './router/subscriptionRouter';
+app.use("/subscription", subscription);
 
 // ⑤ React SPA 용 catch‑all
 app.get("*", (_, res) => {

@@ -1,0 +1,246 @@
+// 색상 변수
+$bg: #000000;
+$txt: #d1d1d4;
+$txt-muted: #7f7f89;
+$purple: #8777e0;
+$active-bg: rgba($purple, 0.18);
+$bg-dark: #0f0f1a;
+$gray-light: #7f7f89;
+
+/* ───────── 공통 기본값 ───────── */
+#jueo34oiuhowd8 {
+    overflow: auto;                 /* 스크롤 영역 활성화 */
+    /* Firefox 전용 */
+    scrollbar-width: thin;          /* 기본·굵게(thin·auto) */
+    scrollbar-color: #8777E0 #1e1e3c; /* thumb 색 / track 색 */
+  }
+  
+  /* ───────── Chrome · Edge · Safari ───────── */
+  #jueo34oiuhowd8::-webkit-scrollbar {
+    width: 6px;                     /* 세로 스크롤 두께 */
+    height: 6px;                    /* 가로 스크롤 두께 */
+  }
+  
+  #jueo34oiuhowd8::-webkit-scrollbar-track {
+    background: #1e1e3c;            /* 트랙(배경) */
+    border-radius: 10px;
+  }
+  
+  #jueo34oiuhowd8::-webkit-scrollbar-thumb {
+    background: #8777E0;            /* 스크롤바(엄지) */
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+  
+  #jueo34oiuhowd8::-webkit-scrollbar-thumb:hover {
+    background: #a997ff;            /* hover 시 살짝 더 밝게 */
+  }
+
+#jueo34oiuhowd8 {
+  background: $bg;  
+  display: flex;
+  width: 600px;
+  padding: 1em 1em 1em 0.5em;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  overflow-y: auto;
+
+  .nptubnbowbpeih27 {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  #logo {
+    padding-left: 1.5em;
+    margin: 2em 0;
+    img {
+      width: 160px;
+    }
+  }
+  .sidebar {
+    width: 240px;
+    height: 100vh;
+    background: $bg;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 0;
+    overflow-y: auto;
+    font-family: "Pretendard", sans-serif; // 필요 시 교체
+
+    &__section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      margin-bottom: 1.5rem;
+    }
+
+    &__title {
+      color: $txt-muted;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0 1.25rem 0.5rem;
+    }
+
+    &__item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: $txt;
+      font-size: 0.9rem;
+      padding: 0.6rem 1.25rem;
+      text-decoration: none;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba($txt, 0.08);
+        border-radius: 35px;
+      }
+
+      &.is-active {
+        background: $active-bg;
+        color: lighten($purple, 12%);
+        border-radius: 35px;
+      }
+
+      &.is-disabled {
+        pointer-events: none;
+        opacity: 0.35;
+      }
+    }
+
+    &__icon {
+      width: 16px;
+      height: 16px;
+      object-fit: contain;
+    }
+
+    &__badge {      
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: $purple;
+      color: #fff;
+      line-height: 1;
+    }
+  }
+
+  .panel {
+    // ─────────────────── 공통 행
+    padding: 0 1em;
+    background: $bg;  
+    &__row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    // ─────────────────── Referral
+    &__referral {
+      font-weight: 600;
+      margin-bottom: 2rem;
+      span {
+        color: antiquewhite;
+        font-family: fangsong;
+        font-weight: 100;
+      }
+    }
+
+    // ─────────────────── 기본/프라이머리/가격 버튼
+    &__btn {
+      width: 100%;
+      border: none;
+      outline: 0;
+      border-radius: 9999px;
+      padding: 0.6em;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+
+      img {
+        width: 16px;
+        padding-bottom: 0.2em;
+        height: auto;    
+      } // 흰색 아이콘용
+
+      &--primary {
+        background: rgba($txt, 0.12);
+        color: #fff;
+
+        &:hover {
+          background: lighten($purple, 8%);
+        }
+        &:active {
+          background: darken($purple, 6%);
+        }
+      }
+
+      &--price {
+        background: rgba($txt, 0);
+        color: $txt;
+        border: 1px solid #ffffff40;
+        font-weight: 600;
+
+        hr{
+            border: 1px solid rgba(255, 255, 255, 0.39);
+            height: 20px;
+            padding: 0;
+            margin: 0;
+        }
+
+        strong {
+          color: #fff;
+        }
+      }
+    }
+
+    // ─────────────────── 소셜 아이콘 원형 버튼
+    &__socials {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    &__social-btn {
+      img {
+        width: 25px;
+        height: auto;
+      }
+
+      &:hover {
+        background: rgba($purple, 0.25);
+      }
+    }
+
+    // ─────────────────── 구분선
+    &__divider {
+      border: none;
+      border-top: 1px solid rgba($gray-light, 0.23);
+      margin: 1rem 0;
+    }
+
+    // ─────────────────── 하단 링크
+    &__links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem 0.4rem;
+      font-size: 0.82rem;
+
+      a {
+        color: $gray-light;
+        text-decoration: none;
+        transition: color 0.15s;
+
+        &:hover {
+          color: #fff;
+        }
+      }
+    }
+  }
+}

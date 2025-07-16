@@ -1,0 +1,193 @@
+$secondary: #1e1e3c; // 짙은 남보라 (배경)
+
+/* CSS 변수도 동시에 정의해 두면 JS-in-CSS나 inline style에서 쓰기 편리 */
+:root {
+  --secondary: #1e1e3c;
+}
+
+.sub-dashboard {  
+  margin: 0 auto;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  &__header {
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #fff;
+    padding: 3rem 2rem;
+    border-radius: 8px;
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #666;
+    }
+  }
+
+  /* 플랜 카드 그리드 */
+  &__plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+
+  /* 현재 구독 섹션 */
+  &__current {
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .current-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 0.75rem 1rem;
+      }
+      th {
+        background: #fafafa;
+        text-align: left;
+        width: 180px;
+      }
+    }
+
+    .current-actions {
+      display: flex;
+      gap: 1rem;
+
+      &__cancel,
+      &__downgrade {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        border-radius: 4px;
+      }
+
+      &__cancel {
+        background: $secondary;
+        color: #fff;
+        &:hover {
+          background: lighten($secondary, 5%);
+        }
+      }
+      &__downgrade {
+        background: #ffc107;
+      }
+    }
+  }
+}
+
+.plan-upgrade {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+  &__cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 1rem;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+
+      &__header {
+        text-align: left;
+        .card__name {
+          font-size: 1.25rem;
+          font-weight: bold;
+        }
+        .card__price {
+          display: flex;
+          align-items: baseline;
+          margin: 0.5rem 0;
+          .card__currency {
+            font-size: 1rem;
+          }
+          .card__amount {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 0.25rem;
+          }
+          .card__unit {
+            font-size: 1rem;
+            color: #666;
+          }
+        }
+        .card__desc {
+          margin-bottom: 1rem;
+          color: #444;
+        }
+        .card__cta {
+          width: 100%;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 0.75rem;
+          font-size: 1rem;
+          cursor: pointer;
+          &.disabled,
+          &:disabled {
+            background: #f0f1f3;
+            color: #999;
+            cursor: default;
+          }
+          &:not(:disabled) {
+            background: #000;
+            color: #fff;
+          }
+        }
+      }
+
+      &__features {
+        text-align: left;
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+        li {
+          position: relative;
+          padding-left: 1.5em;
+          margin-bottom: 0.75rem;
+          &::before {
+            content: "✔";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #00a000;
+          }
+        }
+      }
+
+      &__footnote {
+        margin-top: auto;
+        font-size: 0.875rem;
+        a {
+          display: block;
+          color: #666;
+          text-decoration: underline;
+          margin-bottom: 0.25rem;
+        }
+      }
+    }
+  }
+  &__bcard {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    .card {
+      width: 70%;
+    }
+  }
+}
