@@ -1,7 +1,8 @@
 import React from "react";
+import { Subscription } from "./Main";
 import "./SubscriptionManagementPage.scss";
 
-export default function SubscriptionManagementPage() {
+export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) {
   return (
     <div className="sub-dashboard">
       {/* 현재 구독 정보 */}
