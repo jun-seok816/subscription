@@ -15,55 +15,50 @@ type NavItem = {
 const SECTIONS: { title?: string; items: NavItem[] }[] = [
   {
     items: [
-      { label: "Home", icon: "/assets/images/icons/home.webp", to: "#" },
-      {
-        label: "Search",
-        icon: "/assets/images/icons/search.webp",
-        to: "/clip_seek/clip",
-      },
-      {
-        label: "Mypage",
-        icon: "/assets/images/icons/folder.webp",
-        to: "/BillingSettings",
-      },
+      { label: "날짜 변경", icon: "/assets/images/icons/home.webp", to: "#" },      
     ],
   },
   {
-    title: "AI Translation",
+    title: "토큰 사용하기",
     items: [
       {
         label: "Image",
         icon: "/assets/images/icons/image.webp",
         to: "/tooniz/createProject",
+        badge: "-10",
       },
       {
         label: "Image Editing",
         icon: "/assets/images/icons/pen.webp",
         to: "/tooniz/dashboard",
+        badge: "-20",
       },
       {
         label: "Video",
         icon: "/assets/images/icons/video.webp",
         to: "/clip_seek/dashboard",
+        badge: "-25",
       },
       {
         label: "Document",
         icon: "/assets/images/icons/file.webp",
         to: "#",
         disabled: true,
-        badge: "Dev",
+        badge: "-30",
       },
       {
         label: "Custom Model",
         icon: "/assets/images/icons/x.webp",
         to: "#",
         disabled: true,
+        badge: "-35",
       },
       {
-        label: "All Tools Video",
+        label: "Video Editing",
         icon: "/assets/images/icons/apps.webp",
         to: "/tools/video",
         disabled: true,
+        badge: "-50",
       },
     ],
   },
@@ -73,6 +68,9 @@ export default function SideBar() {
   
   return (
     <aside className="sidebar" id="jueo34oiuhowd8">
+      <div style={{"color":"white","marginBottom":"1em","marginLeft":"1em"}}>
+        <h2>토큰 차감API</h2>
+      </div>
       <div>        
         <Labels />
       </div>      

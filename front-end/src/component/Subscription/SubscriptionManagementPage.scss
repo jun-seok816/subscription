@@ -5,7 +5,7 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
   --secondary: #1e1e3c;
 }
 
-.sub-dashboard {  
+.sub-dashboard {
   margin: 0 auto;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -165,6 +165,15 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
             left: 0;
             top: 0;
             color: #00a000;
+          }
+          &.disabled {
+            opacity: 0.5;
+            color: #999;
+
+            &::before {
+              content: "✘"; 
+              color: #d00000;
+            }
           }
         }
       }

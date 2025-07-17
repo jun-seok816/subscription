@@ -45,18 +45,12 @@ export default function SubscriptionManagementPage() {
               </button>
             </header>
             <ul className="card__features">
-              <li>모든 것이 무료</li>
-              <li>
-                메시지, 파일 업로드, 고급 데이터 분석, 이미지 생성에 한도 증가
-              </li>
-              <li>표준 및 고급 음성 모드</li>
-              <li>
-                심층 리서치 및 여러 이성 모델(04-mini, o4-mini-high, o3),
-                GPT-4.5 리서치 프리뷰에 액세스
-              </li>
-              <li>작업, 프로젝트를 생성, 사용하고 GPT를 맞춤 설정하세요</li>
-              <li>Sora 영상 생성에 제한적 액세스</li>
-              <li>새 기능 테스트 기회</li>
+              <li>Image 작업 엑세스</li>
+              <li>Image Editing 작업 엑세스</li>
+              <li>Video 작업 엑세스</li>
+              <li>Document 작업 엑세스</li>
+              <li>Custom Model 작업 엑세스</li>
+              <li>Video Editing 작업 엑세스</li>              
             </ul>
           </article>
         ))}
