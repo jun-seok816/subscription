@@ -1,6 +1,4 @@
 import React from "react";
-import "@img/mail@3x.png";
-import "@img/google_login_icon.png";
 
 export default function C_signUp_select_btns(props: {
   is_signUp: boolean;
@@ -70,18 +68,18 @@ export default function C_signUp_select_btns(props: {
   return (
     <>
       <button
-        type="submit"
-        style={{"border":"none","borderRadius":"5px","padding":"10px"}}
+        type="submit"        
         onClick={() => {
           lf_oauthSignIn_google();
         }}
-        className="inline-flex items-center justify-center m-0 rounded-2 relative text-white bg-primary text-15"
+        className="signUp_btns"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="24"
           viewBox="0 0 24 24"
           width="24"
+          style={{"marginRight":"1em"}}
         >
           <script />
           <path
@@ -102,9 +100,8 @@ export default function C_signUp_select_btns(props: {
           />
           <path d="M1 1h22v22H1z" fill="none" />
           <script />
-        </svg>
-        <span className="fab fa-google text-danger me-2 fs-9"></span>
-        구글 계정으로 {props.is_signUp ? "회원가입" : "로그인"}하기
+        </svg>        
+        구글 계정으로 로그인하기
       </button>
     </>
   );
