@@ -64,3 +64,4 @@ export interface UserRow {
   token_balance: number;
   created_at: Date;
 }
+
