@@ -1,21 +1,22 @@
 import axios from "axios";
 import { Main } from "./Main_class";
-import { SignUp } from "./SignUp";
 
 export class Login {
   public im_forceRender: () => void;
-
-  private iv_signUp: SignUp;
   public iv_email: string;
+  public iv_sessionData:
+    | {
+        email: string;
+        is_login: boolean;
+      }
+    | undefined;
+
+  public iv_modal: boolean = false;
 
   constructor(im_forceRender: () => void) {
     this.im_forceRender = im_forceRender;
-    this.iv_signUp = new SignUp(this.im_forceRender.bind(this));
     this.iv_email = "";
-  }
-
-  public get pt_signUp(): SignUp {
-    return this.iv_signUp;
+    this.iv_sessionData = undefined;
   }
 
   public async im_loginCheck() {
@@ -26,31 +27,26 @@ export class Login {
 
     try {
       /* 1) 이메일 존재 여부 확인 */
-      const { data } = await axios.post(
-        "/login/loginEmailCheck",
-        { email: this.iv_email },         
-      );
+      await axios.post("/login/loginEmailCheck", { email: this.iv_email });
 
-      /* 2) 결과에 따른 처리 */
-      if (data.exists) {        
-      } else {
-        Main.im_toast("가입된 계정을 찾을 수 없습니다.", "warn");
-      }
+      window.location.reload();
     } catch (err) {
-      Main.im_toast("아이디를 확인해 주세요.", "warn");
+      Main.im_toast("로그인 에러", "warn");
     }
   }
 
-  public static sf_Celluar(value: string) {
-    console.log(value);
-    // 숫자만 허용하고 자릿수를 1~20자리로 제한하는 정규식
-    const regExp = /^\d{1,20}$/;
-    return regExp.test(value); // 형식에 맞는 경우 true 리턴
-  }
-
-  public static sf_nameCheck(value: string) {
-    var regExp = /^[가-힣]{2,4}$/; //
-    return regExp.test(value); // 형식에 맞는 경우 true 리턴
+  public async im_Session() {
+    await axios.get("/login/loginSession").then((res) => {
+      if (res.data.loggedIn == true) {
+        this.iv_sessionData = {
+          email: res.data.email,
+          is_login: true,
+        };
+      }else{
+        this.iv_modal = true;
+      }
+      this.im_forceRender();
+    });
   }
 
   public static sf_emailCheck(value: string) {

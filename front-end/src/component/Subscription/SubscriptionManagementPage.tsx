@@ -3,24 +3,29 @@ import { Subscription } from "./Main";
 import "./SubscriptionManagementPage.scss";
 
 export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) {
+  const lv_user = props.lv_Obj.pt_SubscriptionStore.user;
+  const lv_sub = props.lv_Obj.pt_SubscriptionStore.subscription;
   return (
-    <div className="sub-dashboard">
-      {/* 현재 구독 정보 */}
+    <div className="sub-dashboard">      
       <section className="sub-dashboard__current">
-        <h2>현재 구독</h2>
+        <h2>사용자 정보</h2>
         <table className="current-table">
           <tbody>
             <tr>
+              <th>이메일</th>
+              <td>{lv_user?.email}</td>
+            </tr>
+            <tr>
               <th>플랜</th>
-              <td>PRO</td>
+              <td>{lv_sub?.plan_name}</td>
             </tr>
             <tr>
               <th>다음 결제일</th>
-              <td>2025-08-01</td>
+              <td>{}</td>
             </tr>
             <tr>
               <th>토큰 잔액</th>
-              <td>610</td>
+              <td>{lv_user?.token_balance}</td>
             </tr>
           </tbody>
         </table>

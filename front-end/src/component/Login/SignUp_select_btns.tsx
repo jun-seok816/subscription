@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function C_signUp_select_btns(props: {
+export default function SignUp_select_btns(props: {
   is_signUp: boolean;
   p_state: "login"|"sign_up";
 }) {
@@ -42,7 +42,7 @@ export default function C_signUp_select_btns(props: {
     // Parameters to pass to OAuth 2.0 endpoint.
     var params = {
       client_id:
-        "705704763436-dh4api4874kpd117glbj1fptdk8ldl6h.apps.googleusercontent.com",
+        "77168105156-i07b37ii7efesqo4ckpq1iv4crntvefe.apps.googleusercontent.com",
       redirect_uri: `${window.origin}/login/google_signup`,
       response_type: "token",
       scope: "email profile",

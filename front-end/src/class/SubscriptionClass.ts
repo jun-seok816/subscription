@@ -27,8 +27,7 @@ export class SubscriptionStore{
   constructor(im_forceRender:()=>void) {    
     this.im_forceRender = im_forceRender;
   }
-
-  /* ----------------- 공개 Getter ----------------- */
+  
   get user() {
     return this.state.user;
   }
@@ -49,10 +48,10 @@ export class SubscriptionStore{
 
   /** 로그인 후 한 번 호출해 데이터를 메모리에 로드  */
   public async load(): Promise<void> {
-    // ① 사용자 정보
-    const userRes = await axios.get<UserRow>('/api/me');
-    // ② 구독 정보 (1행)
-    const subRes = await axios.get<SubscriptionRow>('/api/me/subscription');
+    // 사용자 정보
+    const userRes = await axios.post<UserRow>('/subscription/me');
+    // 구독 정보 (1행)
+    const subRes = await axios.post<SubscriptionRow>('/subscription/load');
 
     const user = userRes.data;
     const sub = subRes.data;

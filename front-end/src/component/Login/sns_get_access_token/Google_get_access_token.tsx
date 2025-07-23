@@ -1,7 +1,7 @@
 import axios from "axios";
 import React from "react";
 
-export default function C_google_get_access_token() {
+export default function Google_get_access_token() {
   // Step 2: Handle the redirect callback
   function handleRedirectCallback(): void {
     const {
@@ -33,49 +33,13 @@ export default function C_google_get_access_token() {
           signup_platform: lv_data,
         },
       })
-      .then((res) => {
-        let lv_msg = res.data.msg;
-
+      .then((res) => {        
         let lv_state = state;
 
-        if (lv_msg == "login") {
-          if (lv_state === "login") {
-            window.opener.globalCallback_login();
-            window.close();
-            return;
-          } else {
-            alert("이전에 가입한 계정으로 자동 로그인 됩니다.");
-            window.opener.globalCallback_login();
-            window.close();
-            return;
-          }
-        }
-
-        if (lv_msg == "another_platform") {
-          if (lv_state === "login") {
-            alert("구글로 가입하신,이력이 없어요 다른 방식으로 시도해주세요");
-            window.close();
-            return;
-          } else {
-            alert(
-              "해당 이메일은 이미 가입한 이력이 있습니다. 다른 방식으로 시도해주세요"
-            );
-            window.close();
-            return;
-          }
-        }
-
-        if (lv_msg == "sign_up") {
-          if (lv_state === "login") {
-            alert("가입이력이 없는 아이디입니다. 회원가입을 해주세요");
-            window.opener.globalCallback_snsSignUP(lv_data);
-            window.close();
-            return;
-          } else {
-            window.opener.globalCallback_snsSignUP(lv_data);
-            window.close();
-            return;
-          }
+        if (lv_state === "login") {
+          window.opener.globalCallback_login();
+          window.close();
+          return;
         }
       })
       .catch((err) => {

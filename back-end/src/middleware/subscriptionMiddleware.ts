@@ -1,15 +1,15 @@
-import { RequestHandler, ErrorRequestHandler } from 'express';
-import { Pool } from 'mysql2/promise';
-import { RowDataPacket } from 'mysql2';        // RowDataPacket 타입 추가
-import { verifyWebhookSignature } from '../utils/iamportUtil';
-import { SubscriptionRow } from '../all_Types';
+import { RequestHandler, ErrorRequestHandler } from "express";
+import { Pool } from "mysql2/promise";
+import { RowDataPacket } from "mysql2"; // RowDataPacket 타입 추가
+import { verifyWebhookSignature } from "../utils/iamportUtil";
+import { SubscriptionRow } from "../all_Types";
 
 // ---------------------------------------------------------------------------
 // 1) withDb  ─ 모든 요청에 DB 풀 주입
 // ---------------------------------------------------------------------------
 export const withDb = (pool: Pool): RequestHandler => {
   return (req, res, next) => {
-    res.locals.db = pool;               // 이후 미들웨어에서 res.locals.db 로 접근
+    res.locals.db = pool; // 이후 미들웨어에서 res.locals.db 로 접근
     next();
   };
 };
@@ -19,9 +19,9 @@ export const withDb = (pool: Pool): RequestHandler => {
 //    데모에서는 req.header('x-demo-user') 로 간소화 가능
 // ---------------------------------------------------------------------------
 export const authenticate: RequestHandler = (req, res, next) => {
-  const id = Number(req.header('x-demo-user'));
+  const id = Number(req.header("x-demo-user"));
   if (!id) {
-    res.status(401).json({ message: '로그인이 필요합니다.' });
+    res.status(401).json({ message: "로그인이 필요합니다." });
     return;
   }
   res.locals.userId = id;
@@ -33,12 +33,15 @@ export const authenticate: RequestHandler = (req, res, next) => {
 //     SubscriptionRow 를 RowDataPacket 과 교차 타입으로 사용하여 제네릭 제약 해결
 // ---------------------------------------------------------------------------
 export const loadSubscription: RequestHandler = async (req, res, next) => {
-  const { userId } = res.locals;
+  const userId = req.session.userId;
+
   try {
-    const [rows] = await process._myApp.db.promise().query<(SubscriptionRow & RowDataPacket)[]>(
-      'SELECT * FROM subscriptions WHERE user_id = ?',
-      [userId]
-    );
+    const [rows] = await process._myApp.db
+      .promise()
+      .query<(SubscriptionRow & RowDataPacket)[]>(
+        "SELECT * FROM subscriptions WHERE user_id = ?",
+        [userId]
+      );
     res.locals.subscription = rows[0] ?? null;
     next();
   } catch (err) {
@@ -55,7 +58,7 @@ export const validatePlanChange: RequestHandler = (req, res, next) => {
   const { plan_name, billing_cycle } = req.body;
 
   if (!plan_name) {
-    res.status(400).json({ message: 'plan_name 파라미터가 필요합니다.' });
+    res.status(400).json({ message: "plan_name 파라미터가 필요합니다." });
     return;
   }
 
@@ -63,7 +66,7 @@ export const validatePlanChange: RequestHandler = (req, res, next) => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
   if (subscription && subscription.updated_at > oneMonthAgo) {
-    res.status(400).json({ message: '플랜 변경은 월 1회만 가능합니다.' });
+    res.status(400).json({ message: "플랜 변경은 월 1회만 가능합니다." });
     return;
   }
 
@@ -78,7 +81,7 @@ export const validatePlanChange: RequestHandler = (req, res, next) => {
 export const applyPlanChange: RequestHandler = async (req, res, next) => {
   const { userId, planChange, subscription } = res.locals;
   if (!planChange) {
-    res.status(400).json({ message: '검증되지 않은 변경입니다.' });
+    res.status(400).json({ message: "검증되지 않은 변경입니다." });
     return;
   }
 
@@ -95,10 +98,11 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
 
     // 업그레이드 즉시 토큰 지급 예시
     if (subscription) {
-      const diffToken = (planChange.plan_name === 'PRO' ? 200 : 100) - subscription.token_grant;
+      const diffToken =
+        (planChange.plan_name === "PRO" ? 200 : 100) - subscription.token_grant;
       if (diffToken > 0) {
         await conn.query(
-          'UPDATE users SET token_balance = token_balance + ? WHERE id = ?',
+          "UPDATE users SET token_balance = token_balance + ? WHERE id = ?",
           [diffToken, userId]
         );
       }
@@ -120,7 +124,7 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
 // ---------------------------------------------------------------------------
 export const verifyIamportWebhook: RequestHandler = (req, res, next) => {
   if (!verifyWebhookSignature(req)) {
-    res.status(401).json({ message: '잘못된 Webhook 서명입니다.' });
+    res.status(401).json({ message: "잘못된 Webhook 서명입니다." });
     return;
   }
   next();
@@ -129,7 +133,7 @@ export const verifyIamportWebhook: RequestHandler = (req, res, next) => {
 // ---------------------------------------------------------------------------
 // 7) grantTokensOnRenewal  ─ (Cron 또는 수동 호출) 구독 갱신 시 토큰 지급
 // ---------------------------------------------------------------------------
-export const grantTokensOnRenewal: RequestHandler = async (req, res, next) => {  
+export const grantTokensOnRenewal: RequestHandler = async (req, res, next) => {
   try {
     await process._myApp.db.promise().query(
       `UPDATE users u
@@ -150,5 +154,10 @@ export const grantTokensOnRenewal: RequestHandler = async (req, res, next) => {
 // ---------------------------------------------------------------------------
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ message: '서버 오류', detail: err instanceof Error ? err.message : String(err) });
+  res
+    .status(500)
+    .json({
+      message: "서버 오류",
+      detail: err instanceof Error ? err.message : String(err),
+    });
 };

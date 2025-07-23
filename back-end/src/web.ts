@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import path from "path";
 import mysql, { Connection,Pool } from "mysql2";
 import session from "express-session";
+var MySQLStore = require("express-mysql-session")(session);
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv';
 import Db from "./db";
@@ -20,16 +21,23 @@ declare global {
   }
 
   interface MyApp {        
-    db: Pool;            
+    db: Pool;    
+    checkSession:(req: Request, res: Response, next: NextFunction)=>void;        
   }
+}
+
+const gf_cs = (req: Request, res: Response, next: NextFunction)=>{
+  if (!req.session || !req.session.userId) {
+   res.status(401).send('Unauthorized: No session available');
+ } else {
+   next();
+ }
 }
 
 declare module "express-session" {
   export interface SessionData {
-    userId: number;
-    picture_uri: string;
-    email:string;
-    name:string;        
+    userId: number;    
+    email:string;         
   }
 }
 
@@ -41,6 +49,7 @@ declare module 'express-serve-static-core' {
 
 process._myApp = {
   db:mysql.createPool(lv_Db.pt_Data.DB),
+  checkSession:gf_cs
 }
 
 //https://expressjs.com/ko/starter/static-files.html s
@@ -53,11 +62,13 @@ app.use(bodyParser.urlencoded({ limit: "100mb", extended: false }));
 
 
 app.use(cookieParser());
+var sessionStore = new MySQLStore(lv_Db.pt_Data.DB);
 
 const sessionMiddleware = session({
   secret: "subscribe_loutbtbahah4281!@",
   resave: true,
   saveUninitialized: false,  
+  store: sessionStore,
   cookie: {
     maxAge: 24 * 60 * 60 * 1000 * 7, // 24 hours
   },
@@ -79,6 +90,8 @@ app.use(
 
 import subscription from './router/subscriptionRouter';
 app.use("/subscription", subscription);
+import login from './router/loginRouter';
+app.use("/login", login);
 
 // ⑤ React SPA 용 catch‑all
 app.get("*", (_, res) => {

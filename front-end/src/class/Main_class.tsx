@@ -1,44 +1,20 @@
-import { UserRow } from "@allType";
 import axios from "axios";
 import React, { RefObject, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
-export type t_main = {
-  login_modal: boolean;
-  signUp_modal: boolean;
-  setTimeOut_open: boolean;
-
-  is_login:boolean;
-};
-
 export class Main {
   private iv_UpdateData!: React.Dispatch<React.SetStateAction<object>>;
   public iv_navigate: any;
   private iv_Prepared: boolean = false;
-  private iv_MainData: t_main;
-  private iv_user_data: UserRow | undefined;
-  public get pt_MainData() {
-    return this.iv_MainData;
-  }
-
   private iv_RenderCount = 0;
   public get pt_RenderCount() {
     return this.iv_RenderCount;
   }
 
   static iv_Swal = withReactContent(Swal);
-
-  constructor() {
-    this.iv_MainData = {
-      login_modal: false,
-      signUp_modal: false,
-      setTimeOut_open: false,
-      is_login:false,
-    }
-    this.iv_user_data = undefined;
-  }
+  constructor() {}
 
   //                                                     +------------------------------
   //-----------------------------------------------------+ Hooks
@@ -182,38 +158,5 @@ export class Main {
         rej(false);
       }
     });
-  }
-
-  public async im_Session(): Promise<boolean> {
-    try {
-      const res = await axios.get("/login/loginSession");
-      if (res.data.loggedIn === true) {
-        this.iv_MainData.is_login = true;
-        await this.im_getUserData();
-        this.im_forceRender();
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      console.error("Error checking login session:", error);
-      return false;
-    }
-  }
-
-  public async im_getUserData() {
-    await axios
-      .post("/login/getUserData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      .then((res) => {
-        this.iv_user_data = res.data.user;
-      })
-      .catch((err) => {
-        Main.im_toast("사용자 정보 검색 실패", "error");
-      });
   }
 }

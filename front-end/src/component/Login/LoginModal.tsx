@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Login } from "@jsLib/class/Login";
-import C_signUp_select_btns from "./C_login_sns_email";
-import './C_login.scss';
+import C_signUp_select_btns from "./SignUp_select_btns";
+import "./LoginModal.scss";
 import { Main } from "@jsLib/class/Main_class";
-import { SignUp } from "@jsLib/class/SignUp";
+import Modal from "react-modal";
 
 declare global {
   interface Window {
@@ -13,12 +13,7 @@ declare global {
 }
 
 class LoginComponentClass extends Main {
-  private iv_signUp: SignUp;
   private iv_login: Login;
-
-  public get pt_signUp(): SignUp {
-    return this.iv_signUp;
-  }
 
   public get pt_login(): Login {
     return this.iv_login;
@@ -26,45 +21,58 @@ class LoginComponentClass extends Main {
 
   constructor() {
     super();
-    this.iv_signUp = new SignUp(this.im_forceRender.bind(this));
     this.iv_login = new Login(this.im_forceRender.bind(this));
   }
 }
 
-export default function LoginComponent() {
+export default function LoginModal() {
   const [lv_Obj] = useState(() => {
     return new LoginComponentClass();
   });
 
   lv_Obj.im_Prepare_Hooks(async () => {
-    await lv_Obj.im_Session();
-    window.globalCallback_snsSignUP = (p_platform: "google") => {
-      lv_Obj.pt_MainData.signUp_modal = true;
-      lv_Obj.pt_MainData.login_modal = false;
-      lv_Obj.im_forceRender();
-      setTimeout(() => {
-        lv_Obj.pt_MainData.setTimeOut_open = true;
-        lv_Obj.im_forceRender();
-      }, 300);
-    };
     window.globalCallback_login = () => {
       window.location.reload();
     };
-    lv_Obj.im_forceRender();
+    lv_Obj.pt_login.im_Session();    
   });
 
+  const customStyles = {
+    content: {
+      top: "50%",
+      left: "50%",
+      right: "auto",
+      bottom: "auto",
+      marginRight: "-50%",
+      transform: "translate(-50%, -50%)",
+    },
+  };
+
+  Modal.setAppElement("#app");  
+
   return (
-    <div id="signUp_modal">
-      <Login_tag lv_login={lv_Obj.pt_login}></Login_tag>        
-    </div>
+    <Modal
+      isOpen={lv_Obj.pt_login.iv_modal}
+      onRequestClose={() => {
+        lv_Obj.pt_login.iv_modal = false;
+        lv_Obj.im_forceRender();
+      }}
+      shouldCloseOnOverlayClick={false}
+      style={customStyles}
+      contentLabel="img_down Modal"
+    >
+      <div id="signUp_modal">
+        <Login_tag lv_Obj={lv_Obj}></Login_tag>
+      </div>
+    </Modal>
   );
 }
 
-function Login_tag(props: { lv_login: Login }) {
-  const lv_login = props.lv_login;
+function Login_tag(props: { lv_Obj: LoginComponentClass }) {
+  const lv_login = props.lv_Obj.pt_login;
   return (
     <>
-      <div style={{"fontSize":"26px"}}>
+      <div style={{ fontSize: "26px" }}>
         <C_signUp_select_btns
           is_signUp={false}
           p_state={"login"}
@@ -84,6 +92,7 @@ function Login_tag(props: { lv_login: Login }) {
                 type="email"
                 name="email"
                 className="test-login-input"
+                onBlur={() => {}}
                 value={lv_login.iv_email}
                 placeholder="Enter your email address"
               />
@@ -94,9 +103,9 @@ function Login_tag(props: { lv_login: Login }) {
                 type="submit"
                 className="test-login"
               >
-                <span className="submit-text">Test Login</span>                
+                <span className="submit-text">Test Login</span>
               </button>
-            </section>            
+            </section>
           </div>
         </div>
       </div>

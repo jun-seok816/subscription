@@ -7,8 +7,7 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
 
 .sub-dashboard {
   margin: 0 auto;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 2rem;  
   &__header {
     text-align: center;
     margin-bottom: 3rem;
@@ -93,8 +92,7 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
   &__cards {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
+    gap: 2rem;    
     .card {
       background: #fff;
       border: 1px solid #e0e0e0;

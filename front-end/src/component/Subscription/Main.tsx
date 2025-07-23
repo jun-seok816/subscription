@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import SideBar from "./SideBar";
 import SubscriptionManagementPage from "./SubscriptionManagementPage";
 import { Main } from '../../class/Main_class';
+import LoginModal from "../Login/LoginModal";
 
 export class Subscription extends Main{
     private iv_SubscriptionStore = new SubscriptionStore(this.im_forceRender.bind(this));
@@ -26,9 +27,12 @@ export default function MainComponent(){
     })
 
     return(
+        <>
+        <LoginModal/>
         <div style={{"display":"flex"}}>
             <SideBar lv_Obj={lv_Obj}/>
             <SubscriptionManagementPage lv_Obj={lv_Obj}/>            
         </div>
+        </>
     )
 }
