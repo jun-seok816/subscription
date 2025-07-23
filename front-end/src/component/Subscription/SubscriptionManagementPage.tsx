@@ -1,12 +1,16 @@
 import React from "react";
 import { Subscription } from "./Main";
 import "./SubscriptionManagementPage.scss";
+import { format } from "date-fns";
+import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 
-export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) {
+export default function SubscriptionManagementPage(props: {
+  lv_Obj: Subscription;
+}) {
   const lv_user = props.lv_Obj.pt_SubscriptionStore.user;
   const lv_sub = props.lv_Obj.pt_SubscriptionStore.subscription;
   return (
-    <div className="sub-dashboard">      
+    <div className="sub-dashboard">
       <section className="sub-dashboard__current">
         <h2>사용자 정보</h2>
         <table className="current-table">
@@ -21,7 +25,11 @@ export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) 
             </tr>
             <tr>
               <th>다음 결제일</th>
-              <td>{}</td>
+              <td>
+                {lv_sub
+                  ? format(lv_sub.current_period_end, "yyyy-MM-dd")
+                  : "다음 결제일 없음"}
+              </td>
             </tr>
             <tr>
               <th>토큰 잔액</th>
@@ -33,10 +41,10 @@ export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) 
 
       {/* 플랜 카드 영역 */}
       <div className="plan-upgrade__cards">
-        {["FREE", "BASIC", "PRO"].map((plan) => (
-          <article key={plan} className="card card--plus" onClick={() => {}}>
+        {Object.entries(PLAN_ITEMS).map((plan) => (
+          <article key={plan[0]} className="card card--plus" onClick={() => {}}>
             <header className="card__header">
-              <h3 className="card__name">{plan}</h3>
+              <h3 className="card__name">{plan[0]}</h3>
               <p className="card__price">
                 <span className="card__currency">원</span>
                 <span className="card__amount">0</span>
@@ -56,7 +64,7 @@ export default function SubscriptionManagementPage(props:{lv_Obj:Subscription}) 
               <li>Video 작업 엑세스</li>
               <li>Document 작업 엑세스</li>
               <li>Custom Model 작업 엑세스</li>
-              <li>Video Editing 작업 엑세스</li>              
+              <li>Video Editing 작업 엑세스</li>
             </ul>
           </article>
         ))}
