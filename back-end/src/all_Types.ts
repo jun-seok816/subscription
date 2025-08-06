@@ -22,6 +22,11 @@ export interface FeatureItem {
   disabled: boolean;
 }
 
+export interface Plan {
+  price: number;            // 플랜 가격 (USD, KRW 등)
+  features: FeatureItem[];  // 해당 플랜의 토큰 사용 항목 목록
+}
+
 export type PlanMeta = Pick<
   SubscriptionRow,
   "plan_name" | "billing_cycle" | "price_cents" | "token_grant"
@@ -29,33 +34,40 @@ export type PlanMeta = Pick<
   items: FeatureItem[];
 };
 
-export const PLAN_ITEMS: Record<PlanName, FeatureItem[]> = {
-  FREE: [
-    { label: "Image", badge: "-10", disabled: false },
-    { label: "Image Editing", badge: "-20", disabled: true },
-    { label: "Video", badge: "-25", disabled: true },
-    { label: "Document", badge: "-30", disabled: true },
-    { label: "Custom Model", badge: "-35", disabled: true },
-    { label: "Video Editing", badge: "-50", disabled: true },
-  ],
-
-  BASIC: [
-    { label: "Image", badge: "-10", disabled: false },
-    { label: "Image Editing", badge: "-20", disabled: false },
-    { label: "Video", badge: "-25", disabled: true },
-    { label: "Document", badge: "-30", disabled: true },
-    { label: "Custom Model", badge: "-35", disabled: true },
-    { label: "Video Editing", badge: "-50", disabled: true },
-  ],
-
-  PRO: [
-    { label: "Image", badge: "-10", disabled: false },
-    { label: "Image Editing", badge: "-20", disabled: false },
-    { label: "Video", badge: "-25", disabled: false },
-    { label: "Document", badge: "-30", disabled: false },
-    { label: "Custom Model", badge: "-35", disabled: false },
-    { label: "Video Editing", badge: "-50", disabled: false },
-  ],
+export const PLAN_ITEMS: Record<PlanName, Plan> = {
+  FREE: {
+    price: 0,
+    features: [
+      { label: "Image", badge: "-10", disabled: false },
+      { label: "Image Editing", badge: "-20", disabled: true },
+      { label: "Video", badge: "-25", disabled: true },
+      { label: "Document", badge: "-30", disabled: true },
+      { label: "Custom Model", badge: "-35", disabled: true },
+      { label: "Video Editing", badge: "-50", disabled: true },
+    ],
+  },
+  BASIC: {
+    price: 20,
+    features: [
+      { label: "Image", badge: "-10", disabled: false },
+      { label: "Image Editing", badge: "-20", disabled: false },
+      { label: "Video", badge: "-25", disabled: true },
+      { label: "Document", badge: "-30", disabled: true },
+      { label: "Custom Model", badge: "-35", disabled: true },
+      { label: "Video Editing", badge: "-50", disabled: true },
+    ],
+  },
+  PRO: {
+    price: 40,
+    features: [
+      { label: "Image", badge: "-10", disabled: false },
+      { label: "Image Editing", badge: "-20", disabled: false },
+      { label: "Video", badge: "-25", disabled: false },
+      { label: "Document", badge: "-30", disabled: false },
+      { label: "Custom Model", badge: "-35", disabled: false },
+      { label: "Video Editing", badge: "-50", disabled: false },
+    ],
+  },
 };
 
 export interface UserRow {

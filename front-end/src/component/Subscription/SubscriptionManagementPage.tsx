@@ -45,26 +45,25 @@ export default function SubscriptionManagementPage(props: {
           <article key={plan[0]} className="card card--plus" onClick={() => {}}>
             <header className="card__header">
               <h3 className="card__name">{plan[0]}</h3>
-              <p className="card__price">
-                <span className="card__currency">원</span>
-                <span className="card__amount">0</span>
-
+              <p className="card__price">                
+                <span className="card__amount">{plan[1].price}</span>
                 <span className="card__unit">KRW/월</span>
               </p>
               <p className="card__desc">
-                더 넉넉한 액세스로 생산성과 창의성을 끌어올리세요
+                더 넉넉한 액세스로 생산성을 끌어올리세요
               </p>
               <button className="card__cta" disabled={false}>
-                {`${plan} 이용하기`}
+                {`${plan[0]} 이용하기`}
               </button>
             </header>
             <ul className="card__features">
-              <li>Image 작업 엑세스</li>
-              <li>Image Editing 작업 엑세스</li>
-              <li>Video 작업 엑세스</li>
-              <li>Document 작업 엑세스</li>
-              <li>Custom Model 작업 엑세스</li>
-              <li>Video Editing 작업 엑세스</li>
+              {plan[1].features.map((e) => {
+                const common = {
+                  key: e.label,
+                  className: `${e.disabled ? "disabled" : ""}`,
+                };
+                return <li {...common}>{e.label} 작업 엑세스</li>;
+              })}              
             </ul>
           </article>
         ))}

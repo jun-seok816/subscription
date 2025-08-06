@@ -62,7 +62,7 @@ export class SubscriptionStore{
       billing_cycle: sub.billing_cycle,
       price_cents: sub.price_cents,
       token_grant: sub.token_grant,
-      items: PLAN_ITEMS[sub.plan_name],
+      items: PLAN_ITEMS[sub.plan_name].features,      
     };
 
     // ④ 상태 저장
@@ -88,7 +88,7 @@ export class SubscriptionStore{
       billing_cycle: this.state.subscription.billing_cycle,
       price_cents,
       token_grant,
-      items: PLAN_ITEMS[plan_name],
+      items: PLAN_ITEMS[plan_name].features,
     };
   }
 }
