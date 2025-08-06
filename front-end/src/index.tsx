@@ -24,7 +24,7 @@ root.render(
   <>
     <ToastContainer
       position="bottom-right"
-      style={{ fontSize: "0.6em", width: "auto", minWidth: "10rem" }}
+      style={{ fontSize: "1em", width: "auto", minWidth: "10rem" }}
     />
     <BrowserRouter>
       <Root />

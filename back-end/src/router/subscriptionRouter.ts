@@ -1,4 +1,8 @@
-import { loadSubscription } from "../middleware/subscriptionMiddleware";
+import {
+  applyPlanChange,
+  loadSubscription,
+  rollToNextPeriod,
+} from "../middleware/subscriptionMiddleware";
 import express from "express";
 import { SubscriptionRow, UserRow } from "@jsLib/all_Types";
 import { RowDataPacket } from "mysql2/promise";
@@ -41,8 +45,30 @@ router.post("/me", process._myApp.checkSession, async (req, res) => {
     res.json(lv_data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ err: true });
+    res.status(500).json({ err: true, msg: "네트워크 오류" });
   }
 });
+
+router.post(
+  "/planChange",
+  process._myApp.checkSession,
+  applyPlanChange,
+  loadSubscription,
+  (req, res) => {
+    const lv_data: SubscriptionRow = res.locals.subscription;
+    res.send(lv_data);
+  }
+);
+
+router.post(
+  "/nextPeriod",
+  process._myApp.checkSession,
+  rollToNextPeriod,
+  loadSubscription,
+  (req, res) => {
+    const lv_data: SubscriptionRow = res.locals.subscription;
+    res.send(lv_data);
+  }
+);
 
 export default router;

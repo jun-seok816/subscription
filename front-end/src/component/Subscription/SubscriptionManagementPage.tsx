@@ -33,26 +33,56 @@ export default function SubscriptionManagementPage(props: {
             </tr>
             <tr>
               <th>토큰 잔액</th>
-              <td>{lv_user?.token_balance}</td>
+              <td>{lv_user ? lv_user.token_balance.toLocaleString() : 0}</td>
             </tr>
+            {lv_sub && lv_sub.pending_plan_name && (
+              <tr>
+                <th>다음 주기에 적용될 플랜</th>
+                <td>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div>{lv_sub.pending_plan_name}</div>
+                    <button
+                      className="btn__red"
+                      onClick={async () => {
+                        await props.lv_Obj.pt_SubscriptionStore.rollNext(true);
+                      }}
+                    >
+                      다음 주기로 이동
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </section>
 
       {/* 플랜 카드 영역 */}
       <div className="plan-upgrade__cards">
-        {Object.entries(PLAN_ITEMS).map((plan) => (
+        {Object.entries(PLAN_ITEMS).map((plan, index) => (
           <article key={plan[0]} className="card card--plus" onClick={() => {}}>
             <header className="card__header">
               <h3 className="card__name">{plan[0]}</h3>
-              <p className="card__price">                
+              <p className="card__price">
                 <span className="card__amount">{plan[1].price}</span>
                 <span className="card__unit">KRW/월</span>
               </p>
               <p className="card__desc">
                 더 넉넉한 액세스로 생산성을 끌어올리세요
               </p>
-              <button className="card__cta" disabled={false}>
+              <button
+                className="card__cta"
+                disabled={lv_sub?.plan_name === plan[0]}
+                onClick={() => {
+                  props.lv_Obj.pt_SubscriptionStore.change(index);
+                }}
+              >
                 {`${plan[0]} 이용하기`}
               </button>
             </header>
@@ -63,7 +93,7 @@ export default function SubscriptionManagementPage(props: {
                   className: `${e.disabled ? "disabled" : ""}`,
                 };
                 return <li {...common}>{e.label} 작업 엑세스</li>;
-              })}              
+              })}
             </ul>
           </article>
         ))}

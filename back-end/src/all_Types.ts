@@ -24,6 +24,7 @@ export interface FeatureItem {
 
 export interface Plan {
   price: number;            // 플랜 가격 (USD, KRW 등)
+  token_grant:number;
   features: FeatureItem[];  // 해당 플랜의 토큰 사용 항목 목록
 }
 
@@ -34,9 +35,16 @@ export type PlanMeta = Pick<
   items: FeatureItem[];
 };
 
+export const PLAN_RANK: Record<PlanName, number> = {
+  FREE: 0,
+  BASIC: 1,
+  PRO: 2,
+};
+
 export const PLAN_ITEMS: Record<PlanName, Plan> = {
   FREE: {
     price: 0,
+    token_grant:100,
     features: [
       { label: "Image", badge: "-10", disabled: false },
       { label: "Image Editing", badge: "-20", disabled: true },
@@ -48,6 +56,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
   },
   BASIC: {
     price: 20,
+    token_grant:500,
     features: [
       { label: "Image", badge: "-10", disabled: false },
       { label: "Image Editing", badge: "-20", disabled: false },
@@ -59,6 +68,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
   },
   PRO: {
     price: 40,
+    token_grant:1000,
     features: [
       { label: "Image", badge: "-10", disabled: false },
       { label: "Image Editing", badge: "-20", disabled: false },

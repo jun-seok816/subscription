@@ -1,35 +1,10 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
-import { Pool } from "mysql2/promise";
 import { RowDataPacket } from "mysql2"; // RowDataPacket 타입 추가
 import { verifyWebhookSignature } from "../utils/iamportUtil";
-import { SubscriptionRow } from "../all_Types";
+import { PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
 
 // ---------------------------------------------------------------------------
-// 1) withDb  ─ 모든 요청에 DB 풀 주입
-// ---------------------------------------------------------------------------
-export const withDb = (pool: Pool): RequestHandler => {
-  return (req, res, next) => {
-    res.locals.db = pool; // 이후 미들웨어에서 res.locals.db 로 접근
-    next();
-  };
-};
-
-// ---------------------------------------------------------------------------
-// 2) authenticate  ─ 세션 또는 JWT 에서 userId 주입
-//    데모에서는 req.header('x-demo-user') 로 간소화 가능
-// ---------------------------------------------------------------------------
-export const authenticate: RequestHandler = (req, res, next) => {
-  const id = Number(req.header("x-demo-user"));
-  if (!id) {
-    res.status(401).json({ message: "로그인이 필요합니다." });
-    return;
-  }
-  res.locals.userId = id;
-  next();
-};
-
-// ---------------------------------------------------------------------------
-// 3) loadSubscription  ─ 현재 구독 정보 로드 & res.locals 에 저장
+// loadSubscription  ─ 현재 구독 정보 로드 & res.locals 에 저장
 //     SubscriptionRow 를 RowDataPacket 과 교차 타입으로 사용하여 제네릭 제약 해결
 // ---------------------------------------------------------------------------
 export const loadSubscription: RequestHandler = async (req, res, next) => {
@@ -51,7 +26,7 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
 };
 
 // ---------------------------------------------------------------------------
-// 4) validatePlanChange  ─ 플랜 변경 정책 검사(월 1회 제한, 업/다운 규칙 등)
+// validatePlanChange  ─ 플랜 변경 정책 검사(월 1회 제한, 업/다운 규칙 등)
 // ---------------------------------------------------------------------------
 export const validatePlanChange: RequestHandler = (req, res, next) => {
   const { subscription } = res.locals;
@@ -76,12 +51,21 @@ export const validatePlanChange: RequestHandler = (req, res, next) => {
 };
 
 // ---------------------------------------------------------------------------
-// 5) applyPlanChange  ─ 트랜잭션으로 구독 업데이트 & 토큰 증감
+// applyPlanChange  ─ 트랜잭션으로 구독 업데이트 & 토큰 증감
 // ---------------------------------------------------------------------------
 export const applyPlanChange: RequestHandler = async (req, res, next) => {
-  const { userId, planChange, subscription } = res.locals;
-  if (!planChange) {
-    res.status(400).json({ message: "검증되지 않은 변경입니다." });
+  const planIdx = Number(req.body.plan_name);
+  const user_id = req.session.userId;
+
+  // ─── 1) 파라미터·세션 유효성 ─────────────────────────
+  if (Number.isNaN(planIdx) || !user_id) {
+    res.status(400).json({ err: true, msg: "잘못된 요청입니다." });
+    return;
+  }
+
+  const newPlan = Object.keys(PLAN_ITEMS)[planIdx] as PlanName;
+  if (!newPlan) {
+    res.status(400).json({ err: true, msg: "존재하지 않는 플랜입니다." });
     return;
   }
 
@@ -89,31 +73,193 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
   try {
     await conn.beginTransaction();
 
-    await conn.query(
-      `UPDATE subscriptions
-       SET plan_name = ?, billing_cycle = ?, updated_at = NOW()
-       WHERE user_id = ?`,
-      [planChange.plan_name, planChange.billing_cycle, userId]
+    // ─── 2) 현재 구독 행 잠금 조회 ─────────────────────
+    const [[sub]] = await conn.query<RowDataPacket[]>(
+      `SELECT plan_name, pending_plan_name
+         FROM subscriptions
+        WHERE user_id = ?
+        FOR UPDATE`,
+      [user_id]
     );
 
-    // 업그레이드 즉시 토큰 지급 예시
-    if (subscription) {
-      const diffToken =
-        (planChange.plan_name === "PRO" ? 200 : 100) - subscription.token_grant;
-      if (diffToken > 0) {
+    if (!sub) {
+      await conn.rollback();
+      res.status(404).json({ err: true, msg: "구독 정보를 찾을 수 없습니다." });
+      return;
+    }
+
+    // ─── 3) 이미 동일 플랜이면 충돌 ─────────────────────
+    const isSameAsCurrent =
+      sub.plan_name === newPlan &&
+      (!sub.pending_plan_name || sub.pending_plan_name === newPlan);
+
+    if (isSameAsCurrent) {
+      await conn.rollback();
+      res
+        .status(409)
+        .json({ err: true, msg: "이미 사용 중(예약)인 플랜입니다." });
+      return;
+    }
+
+    const isUpgrade = PLAN_RANK[newPlan] > PLAN_RANK[sub.plan_name as PlanName];
+
+    // ─── 4) 업그레이드 경로 ────────────────────────────
+    if (isUpgrade) {
+      await conn.query(
+        `UPDATE subscriptions
+            SET plan_name         = ?,
+                billing_cycle     = 'MONTHLY',
+                current_period_end = DATE_ADD(NOW(), INTERVAL 1 MONTH),
+                pending_plan_name     = NULL,
+                pending_billing_cycle = NULL,
+                cancel_at_period_end  = 0,
+                updated_at            = NOW()
+          WHERE user_id = ?`,
+        [newPlan, user_id]
+      );
+
+      // 즉시 토큰 지급 예시
+      const addToken = PLAN_ITEMS[newPlan].token_grant;
+      if (addToken > 0) {
         await conn.query(
-          "UPDATE users SET token_balance = token_balance + ? WHERE id = ?",
-          [diffToken, userId]
+          `UPDATE users SET token_balance = token_balance + ? WHERE id = ?`,
+          [addToken, user_id]
         );
       }
     }
+    // ─── 5) 다운그레이드(예약) 경로 ────────────────────
+    else {
+      if (sub.pending_plan_name === newPlan) {
+        await conn.rollback();
+        res.status(409).json({
+          err: true,
+          msg: "이미 다음 주기에 동일 플랜이 예약되어 있습니다.",
+        });
+        return;
+      }
+
+      await conn.query(
+        `UPDATE subscriptions
+            SET pending_plan_name     = ?,
+                pending_billing_cycle = 'MONTHLY',
+                cancel_at_period_end  = 0,
+                updated_at            = NOW()
+          WHERE user_id = ?`,
+        [newPlan, user_id]
+      );
+    }
 
     await conn.commit();
-    res.locals.result = { success: true };
     next();
   } catch (err) {
     await conn.rollback();
-    next(err);
+    next(err); // ⚠️ 글로벌 error-handler에서 동일 포맷으로 변환해 주는 것을 권장
+  } finally {
+    conn.release();
+  }
+};
+
+// ▸ 다음 주기로 이동 미들웨어 ---------------------------------------------
+export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
+  const user_id = req.session.userId;
+  if (!user_id) {
+    res.status(401).json({ err: true, msg: "로그인이 필요합니다." });
+    return;
+  }
+
+  const conn = await process._myApp.db.promise().getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 1) 현재 구독 행 잠금
+    const [[sub]] = await conn.query<RowDataPacket[]>(
+      `SELECT *
+         FROM subscriptions
+        WHERE user_id = ?
+        FOR UPDATE`,
+      [user_id]
+    );
+
+    if (!sub) {
+      await conn.rollback();
+      res.status(404).json({ err: true, msg: "구독 정보를 찾을 수 없습니다." });
+      return;
+    }
+
+    // 2) 아직 기간이 끝나지 않았는데 force 옵션이 없으면 막기
+    if (sub.current_period_end > new Date() && !req.body.force) {
+      await conn.rollback();
+      res.status(400).json({
+        err: true,
+        msg: "아직 구독 기간이 끝나지 않았습니다.",
+      });
+      return 
+    }
+
+    /* ────────────────────────────────────────────────────────────── */
+    const nextPlan: PlanName = sub.pending_plan_name || sub.plan_name;
+    /* 3) 해지 예약인 경우 → 행 FREE 전환 */
+    if (sub.cancel_at_period_end || nextPlan === 'FREE') {
+      await conn.query(
+        `UPDATE subscriptions
+            SET plan_name            = 'FREE',
+                billing_cycle        = 'MONTHLY',      
+                price_cents          = 0,
+                token_grant          = 0,
+                pending_plan_name    = NULL,
+                pending_billing_cycle= NULL,
+                cancel_at_period_end = 0,              -- 플래그 해제
+                current_period_end   = NULL            -- 무료라서 기간 무의미
+          WHERE user_id = ?`,
+        [user_id]
+      );
+    
+      await conn.commit();
+      next();
+      return;
+    }
+
+    /* 4) 다음 주기 플랜·주기 결정 */
+    
+    const nextCycle: "MONTHLY" | "YEARLY" =
+      sub.pending_billing_cycle || sub.billing_cycle;
+
+    const price = PLAN_ITEMS[nextPlan].price;
+    const grant = PLAN_ITEMS[nextPlan].token_grant;
+
+    /* 5) 롤오버 + 예약 해제 */
+    await conn.query(
+      `UPDATE subscriptions
+      SET
+        plan_name            = ?,     
+        billing_cycle        = ?,     
+        price_cents          = ?,     
+        token_grant          = ?,     
+        current_period_end   = CASE
+                                 WHEN ? = 'MONTHLY'            
+                                 THEN DATE_ADD(current_period_end, INTERVAL 1 MONTH)
+                                 ELSE DATE_ADD(current_period_end, INTERVAL 1 YEAR)
+                               END,
+        pending_plan_name    = NULL,
+        pending_billing_cycle= NULL,
+        updated_at           = NOW()
+      WHERE user_id = ?`,
+      [nextPlan, nextCycle, price, grant, nextCycle, user_id]
+    );
+
+    /* 6) 주기당 토큰 지급 */
+    if (grant > 0) {
+      await conn.query(
+        `UPDATE users SET token_balance = token_balance + ? WHERE id = ?`,
+        [grant, user_id]
+      );
+    }
+
+    await conn.commit();
+    next();    
+  } catch (err) {
+    await conn.rollback();
+    next(err); // 전역 핸들러가 { err:true, msg } 포맷으로 변환
   } finally {
     conn.release();
   }
@@ -124,7 +270,7 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
 // ---------------------------------------------------------------------------
 export const verifyIamportWebhook: RequestHandler = (req, res, next) => {
   if (!verifyWebhookSignature(req)) {
-    res.status(401).json({ message: "잘못된 Webhook 서명입니다." });
+    res.status(401).json({ err: true, msg: "잘못된 Webhook 서명입니다." });
     return;
   }
   next();
@@ -147,17 +293,4 @@ export const grantTokensOnRenewal: RequestHandler = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
-
-// ---------------------------------------------------------------------------
-// 8) errorHandler  ─ 공통 에러 처리 (마지막에 app.use 로 연결)
-// ---------------------------------------------------------------------------
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  console.error(err);
-  res
-    .status(500)
-    .json({
-      message: "서버 오류",
-      detail: err instanceof Error ? err.message : String(err),
-    });
 };
