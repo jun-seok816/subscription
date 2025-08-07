@@ -90,6 +90,8 @@ import subscription from "./router/subscriptionRouter";
 app.use("/subscription", subscription);
 import login from "./router/loginRouter";
 app.use("/login", login);
+import pay from "./router/paymentRouter";
+app.use("/pay", pay);
 
 app.use((err: any, req: any, res: any, next: any) => {
   // 이미 헤더가 전송됐다면 Express 기본 처리에 맡김

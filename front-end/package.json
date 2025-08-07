@@ -11,6 +11,7 @@
   "author": "hdr",
   "license": "ISC",
   "dependencies": {
+    "@portone/browser-sdk": "^0.0.24",
     "axios": "^1.10.0",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",

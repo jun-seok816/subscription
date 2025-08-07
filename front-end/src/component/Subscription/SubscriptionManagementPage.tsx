@@ -26,7 +26,7 @@ export default function SubscriptionManagementPage(props: {
             <tr>
               <th>다음 결제일</th>
               <td>
-                {lv_sub
+                {lv_sub&& lv_sub.cancel_at_period_end !== null
                   ? format(lv_sub.current_period_end, "yyyy-MM-dd")
                   : "다음 결제일 없음"}
               </td>
@@ -80,7 +80,11 @@ export default function SubscriptionManagementPage(props: {
                 className="card__cta"
                 disabled={lv_sub?.plan_name === plan[0]}
                 onClick={() => {
-                  props.lv_Obj.pt_SubscriptionStore.change(index);
+                  props.lv_Obj.pt_Payment.im_handlePayment().then(res=>{
+                    if(res)
+                    props.lv_Obj.pt_SubscriptionStore.change(index);
+                  })
+                  
                 }}
               >
                 {`${plan[0]} 이용하기`}

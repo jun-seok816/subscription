@@ -5,11 +5,13 @@ import SubscriptionManagementPage from "./SubscriptionManagementPage";
 import { Main } from "../../class/Main_class";
 import LoginModal from "../Login/LoginModal";
 import { SpinnerOverlay } from "../SpinnerOverlay";
+import { Payment } from "@jsLib/class/Payment";
 
 export class Subscription extends Main {
   private iv_SubscriptionStore = new SubscriptionStore(
     this.im_forceRender.bind(this)
   );
+  private iv_Payement = new Payment();  
   public iv_loading = false;
 
   constructor() {
@@ -18,6 +20,10 @@ export class Subscription extends Main {
 
   get pt_SubscriptionStore() {
     return this.iv_SubscriptionStore;
+  }
+
+  get pt_Payment(){
+    return this.iv_Payement;
   }
 }
 

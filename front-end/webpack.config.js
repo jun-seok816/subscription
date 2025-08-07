@@ -22,7 +22,7 @@ module.exports = merge(base, {
           <meta http-equiv="Expires" content="0">
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">          
-          <title>WaveForm</title>
+          <title>Token</title>
           <base href="/">                    
         </head>         
         <body style="margin: 0; padding: 0; width: 100%; height: 100%;"> 
