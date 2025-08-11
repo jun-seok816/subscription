@@ -55,7 +55,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
     ],
   },
   BASIC: {
-    price: 20,
+    price: 2000,
     token_grant:500,
     features: [
       { label: "Image", badge: "-10", disabled: false },
@@ -67,7 +67,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
     ],
   },
   PRO: {
-    price: 40,
+    price: 4000,
     token_grant:1000,
     features: [
       { label: "Image", badge: "-10", disabled: false },
@@ -80,10 +80,16 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
   },
 };
 
-export interface UserRow {
-  id: number;
-  email: string;
-  token_balance: number;
-  created_at: Date;
+export interface UserRow {  
+  email: string;                           // VARCHAR(255)
+  token_balance: number;                   // INT
+  created_at: Date;                        // DATETIME    
+  billing_key_status: Billing_key_status;  // enum
+  card_brand: string | null;               // VARCHAR(50) | NULL
+  card_last4: string | null;               // CHAR(4) | NULL 
+  easy_pay_provider: string | null;        // VARCHAR(50) | NULL
+  billing_key_created_at: Date | null;     // DATETIME | NULL
+  billing_key_updated_at: Date | null;     // DATETIME | NULL
 }
 
+export type Billing_key_status = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
