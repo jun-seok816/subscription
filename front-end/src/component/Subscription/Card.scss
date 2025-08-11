@@ -1,0 +1,48 @@
+.ubt {
+  --bg: #ffffff;
+  --border: #e5e7eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --muted-2: #9ca3af;
+  --chip-active-bg: #ecfdf5;
+  --chip-active-fg: #065f46;
+  --chip-inactive-bg: #f3f4f6;
+  --chip-inactive-fg: #374151;
+  --chip-revoked-bg: #fef2f2;
+  --chip-revoked-fg: #991b1b;
+
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.ubt__brandIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  object-fit: contain;
+}
+
+.ubt__pgIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.ubt__cellMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ubt__brandName {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ubt__sub {
+  color: var(--muted-2);
+  font-size: 12px;
+}

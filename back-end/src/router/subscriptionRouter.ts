@@ -22,8 +22,8 @@ router.post("/me", process._myApp.checkSession, async (req, res) => {
   try {
     const userId = Number(req.session.userId);
 
-    const [rows] = await process._myApp.db.promise().query<RowDataPacket[]>(
-      `SELECT id, email, token_balance, created_at
+    const [rows] = await process._myApp.db.promise().query<UserRow & RowDataPacket[]>(
+      `SELECT *
                FROM users
               WHERE id = ?
               LIMIT 1`,
@@ -34,14 +34,8 @@ router.post("/me", process._myApp.checkSession, async (req, res) => {
       res.status(404).json({ err: true, msg: "user not found" });
       return;
     }
-
-    const lv_data: UserRow = {
-      id: rows[0].id,
-      email: rows[0].email,
-      token_balance: rows[0].token_balance,
-      created_at: rows[0].created_at,
-    };
-
+    const { id, portone_billing_key, portone_customer_id, ...rest } = rows[0]; // id만 제거
+    const lv_data = rest;
     res.json(lv_data);
   } catch (err) {
     console.error(err);

@@ -4,7 +4,6 @@ import SideBar from "./SideBar";
 import SubscriptionManagementPage from "./SubscriptionManagementPage";
 import { Main } from "../../class/Main_class";
 import LoginModal from "../Login/LoginModal";
-import { SpinnerOverlay } from "../SpinnerOverlay";
 import { Payment } from "@jsLib/class/Payment";
 
 export class Subscription extends Main {
@@ -37,8 +36,7 @@ export default function MainComponent() {
   });
 
   return (
-    <>
-      {lv_Obj.iv_loading && <SpinnerOverlay />}
+    <>      
       <LoginModal />
       <div style={{ display: "flex" }}>
         <SideBar lv_Obj={lv_Obj} />

@@ -56,9 +56,7 @@ router.post("/billing", process._myApp.checkSession, async (req, res) => {
   }
   const conn = await process._myApp.db.promise().getConnection();
   try {
-    // 1) 포트원 V2 '빌링키 단건 조회'로 유효성 확인
-    //    - Header: Authorization: PortOne <V2_API_SECRET>
-    //    - GET https://api.portone.io/billing-keys/{billingKey}?storeId=...
+    
     const response = await axios.get(
       `https://api.portone.io/billing-keys/${encodeURIComponent(billingKey)}`,
       {
@@ -128,7 +126,7 @@ router.post("/billing", process._myApp.checkSession, async (req, res) => {
       data: {
         status: parsed.status, // 'ISSUED'
         provider: parsed.provider, // 예: 'KAKAOPAY'
-        methodType: parsed.methodType, // 예: 'BillingKeyPaymentMethodEasyPayCharge'
+        methodType: parsed.methodType, 
         cardBrand: parsed.cardBrand, // 카드형일 때만 값
         cardLast4: parsed.cardLast4, // 카드형일 때만 값
       },
@@ -146,6 +144,96 @@ router.post("/billing", process._myApp.checkSession, async (req, res) => {
   }
 });
 
+router.delete(
+  '/billing',
+  process._myApp.checkSession,
+  async (req, res) => {
+    const conn = await process._myApp.db.promise().getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // 현재 로그인 사용자의 빌링키 조회 (행 잠금)
+      const [rows] = await conn.execute<any[]>(
+        `SELECT id, portone_billing_key
+           FROM subscription.users
+          WHERE id = ? FOR UPDATE`,
+        [req.session.userId]
+      );
+
+      if (rows.length === 0) {
+        throw new Error('user not found');
+      }
+      const { id: userId, portone_billing_key: billingKey } = rows[0];
+
+      if (!billingKey) {
+        await conn.rollback();
+        res.status(400).json({
+          err: true,
+          msg: '삭제할 빌링키가 없습니다.',
+        });
+        return;
+      }
+
+      // 1) 포트원 측 빌링키 삭제 (idempotent 처리: 404면 이미 삭제된 것으로 간주)
+      try {
+        await axios.delete(
+          `https://api.portone.io/billing-keys/${encodeURIComponent(billingKey)}`,
+          {
+            headers: { Authorization: `PortOne ${process.env.CHANNEL_KEY}` },
+            timeout: 8000,
+          }
+        );
+      } catch (e: any) {
+        const status = e.response?.status;
+        if (status !== 404) {
+          console.error('PortOne delete failed:', e.response?.data || e.message);
+          await conn.rollback();
+          res.status(502).json({
+            err: true,
+            msg: '포트원 빌링키 삭제에 실패했습니다.',
+            data: e.response?.data ?? null,
+          });
+          return;
+        }
+        // 404: 이미 삭제된 상태 → 로컬만 정리 계속 진행
+      }
+
+      // 2) 로컬 DB 정리 (결제정보 초기화 + 상태 REVOKED)
+      await conn.execute(
+        `UPDATE subscription.users
+            SET portone_billing_key   = NULL,
+                billing_key_status    = 'REVOKED',
+                card_brand            = NULL,
+                card_last4            = NULL,
+                easy_pay_provider     = NULL,
+                billing_key_updated_at= NOW()
+          WHERE id = ?`,
+        [userId]
+      );
+
+      await conn.commit();
+
+      // 3) 성공 응답
+      res.json({
+        err: false,
+        msg: '빌링키 삭제(결제정보 초기화)가 완료되었습니다.',
+        data: {
+          status: 'REVOKED',
+        },
+      });
+    } catch (error: any) {
+      console.error('빌링키 삭제 에러:', error.response?.data || error.message);
+      try { await conn.rollback(); } catch {}
+      res.status(500).json({
+        err: true,
+        msg: '빌링키 삭제 중 오류가 발생했습니다.',
+      });
+    } finally {
+      conn.release();
+    }
+  }
+);
+
 type BillingKeyResponse = {
   status: string;
   billingKey: string;
@@ -159,13 +247,12 @@ type BillingKeyResponse = {
 
 function parseBillingKeyInfo(info: BillingKeyResponse) {
   const methodEntry = info.methods?.[0];
-  const inner = methodEntry?.method; // <- 여기!
+  const inner = methodEntry?.method; 
   const methodType = inner?.type ?? methodEntry?.type ?? null;
 
   const isEasyPay = methodType?.toUpperCase().includes("EASYPAY") ?? false;
   const isCard = methodType?.toUpperCase().includes("CARD") ?? false;
-
-  // PG/지갑 종류 힌트 (카카오페이 등)
+  
   const provider =
     info.channels?.[0]?.pgProvider ?? info.channels?.[0]?.name ?? null;
 
@@ -194,10 +281,10 @@ function parseBillingKeyInfo(info: BillingKeyResponse) {
     billingKey: info.billingKey,
     customerId: info.customer?.id ?? null,
     provider, // 예: 'KAKAOPAY'
-    methodType, // 예: 'BillingKeyPaymentMethodEasyPayCharge'
+    methodType, 
     cardBrand,
     cardLast4,
-    easyPayProvider, // 예: 'KAKAOPAY' (없을 수도)
+    easyPayProvider, // 예: 'KAKAOPAY'
   };
 }
 

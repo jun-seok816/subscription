@@ -55,7 +55,11 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }
-
+    .table-div{
+      display: flex;
+      gap: 10px;      
+      align-items: flex-start;
+    }
     .current-table {
       width: 100%;
       border-collapse: collapse;

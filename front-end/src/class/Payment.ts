@@ -44,6 +44,15 @@ export class Payment {
     }
   }
 
+  async im_deleteBillingKey(){
+    const result = await axios.delete("/pay/billing")
+    if (result.data.err) {
+      Main.im_toast(result.data.msg, "error");      
+    }else{
+      window.location.reload();
+    }
+  }
+
   async im_issueBillingKey(userEmail: string | undefined): Promise<boolean> {
     if (!userEmail) {
       Main.im_toast("사용자 정보 load 실패", "error");
@@ -73,6 +82,7 @@ export class Payment {
         userEmail: userEmail,
         customerId: customerId,
       });
+      
       if (result.data.err) {
         Main.im_toast(result.data.msg, "error");
         return false;
