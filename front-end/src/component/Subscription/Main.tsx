@@ -38,7 +38,7 @@ export default function MainComponent() {
   return (
     <>      
       <LoginModal />
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex" , height:"100%"}}>
         <SideBar lv_Obj={lv_Obj} />
         <SubscriptionManagementPage lv_Obj={lv_Obj} />
       </div>

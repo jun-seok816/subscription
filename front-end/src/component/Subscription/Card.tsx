@@ -12,6 +12,7 @@ const KFTC_CODE_BY_BRAND: Record<string, string> = {
   WOORI_CARD: "041", // 우리카드(0xx)
   BC_CARD: "361",
   NH_CARD: "371",
+  KAKAOPAY:"001",
 };
 
 const BRAND_LABEL: Record<string, string> = {
@@ -23,6 +24,7 @@ const BRAND_LABEL: Record<string, string> = {
   WOORI_CARD: "우리카드",
   BC_CARD: "BC카드",
   NH_CARD: "NH농협카드",
+  KAKAOPAY:"카카오페이"
 };
 
 function getBrandMeta(brand: string | null): {
@@ -35,7 +37,7 @@ function getBrandMeta(brand: string | null): {
   const label = BRAND_LABEL[brand] ?? brand;
   const iconPath = kftc
     ? `/assets/images/icons/${kftc}.png`
-    : "/icons/cards/generic.png";
+    : null;
   return { label, kftc, iconPath };
 }
 
@@ -48,7 +50,7 @@ function maskLast4(last4: string | null): string {
 export default function Card(props: { lv_Obj: Subscription }) {
   const lv_user = props.lv_Obj.pt_SubscriptionStore.user;
   if (!lv_user) return <></>;
-  const brand = getBrandMeta(lv_user.card_brand);
+  const brand = getBrandMeta(lv_user.card_brand || lv_user.easy_pay_provider);
   return (
     <>
       <tr>

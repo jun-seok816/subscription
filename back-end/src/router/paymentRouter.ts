@@ -206,7 +206,15 @@ router.delete(
                 card_brand            = NULL,
                 card_last4            = NULL,
                 easy_pay_provider     = NULL,
-                billing_key_updated_at= NOW()
+                billing_key_updated_at= NOW(),
+                current_period_end   = NULL ,
+                cancel_at_period_end = 0, 
+                pending_billing_cycle= NULL,
+                pending_plan_name    = NULL,
+                token_grant          = 0,
+                price_cents          = 0,
+                billing_cycle        = 'MONTHLY',
+                plan_name            = 'FREE'
           WHERE id = ?`,
         [userId]
       );

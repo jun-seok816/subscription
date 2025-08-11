@@ -94,6 +94,9 @@ export default function SubscriptionManagementPage(props: {
                 className="card__cta"
                 disabled={lv_sub?.plan_name === plan[0]}
                 onClick={() => {
+                  if (lv_user?.billing_key_status === "ACTIVE") {
+                    return props.lv_Obj.pt_SubscriptionStore.change(index);
+                  }
                   props.lv_Obj.pt_Payment
                     .im_issueBillingKey(lv_user?.email)
                     .then((res) => {
