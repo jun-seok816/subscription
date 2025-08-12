@@ -41,10 +41,8 @@ function getBrandMeta(brand: string | null): {
   return { label, kftc, iconPath };
 }
 
-function maskLast4(last4: string | null): string {
-  if (!last4) return "—";
-  const clean = String(last4).replace(/\D+/g, "").slice(-4);
-  return clean ? `•••• ${clean}` : "—";
+function maskLast4(last4: string | null): string {  
+  return last4 ? `•••• ${last4}` :"";
 }
 
 export default function Card(props: { lv_Obj: Subscription }) {
@@ -61,11 +59,7 @@ export default function Card(props: { lv_Obj: Subscription }) {
               <img
                 src={brand.iconPath}
                 alt={brand.kftc ? `KFTC ${brand.kftc}` : "카드"}
-                className="ubt__brandIcon"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    "/icons/cards/generic.svg";
-                }}
+                className="ubt__brandIcon"                
               />
             )}
             <div className="ubt__cellMain">

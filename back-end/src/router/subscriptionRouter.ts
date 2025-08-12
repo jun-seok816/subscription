@@ -6,6 +6,7 @@ import {
 import express from "express";
 import { SubscriptionRow, UserRow } from "@jsLib/all_Types";
 import { RowDataPacket } from "mysql2/promise";
+import { scheduleNext } from "@jsLib/middleware/scheduleMiddleware";
 const router = express.Router();
 
 router.post(
@@ -48,6 +49,7 @@ router.post(
   process._myApp.checkSession,
   applyPlanChange,
   loadSubscription,
+  scheduleNext,
   (req, res) => {
     const lv_data: SubscriptionRow = res.locals.subscription;
     res.send(lv_data);
@@ -59,6 +61,7 @@ router.post(
   process._myApp.checkSession,
   rollToNextPeriod,
   loadSubscription,
+  scheduleNext,
   (req, res) => {
     const lv_data: SubscriptionRow = res.locals.subscription;
     res.send(lv_data);
