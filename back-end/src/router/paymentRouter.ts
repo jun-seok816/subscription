@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { createBillingKey, deleteBillingKey } from "@jsLib/middleware/billingKeyMiddleware";
+import { createBillingKey, deleteBillingKey } from "../middleware/billingKeyMiddleware";
 const router = express.Router();
 
 

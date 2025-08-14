@@ -6,7 +6,7 @@ import {
 import express from "express";
 import { SubscriptionRow, UserRow } from "@jsLib/all_Types";
 import { RowDataPacket } from "mysql2/promise";
-import { scheduleNext } from "@jsLib/middleware/scheduleMiddleware";
+import { scheduleNext } from "../middleware/scheduleMiddleware";
 const router = express.Router();
 
 router.post(
