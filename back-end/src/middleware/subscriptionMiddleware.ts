@@ -109,13 +109,14 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
         `UPDATE subscriptions
             SET plan_name         = ?,
                 billing_cycle     = 'MONTHLY',
+                price_cents = ?,
                 current_period_end = DATE_ADD(NOW(), INTERVAL 1 MONTH),
                 pending_plan_name     = NULL,
                 pending_billing_cycle = NULL,
                 cancel_at_period_end  = 0,
                 updated_at            = NOW()
           WHERE user_id = ?`,
-        [newPlan, user_id]
+        [newPlan, PLAN_ITEMS[newPlan].price, user_id]
       );
 
       // 즉시 토큰 지급 예시
@@ -141,11 +142,12 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
       await conn.query(
         `UPDATE subscriptions
             SET pending_plan_name     = ?,
+                price_cents = ?,
                 pending_billing_cycle = 'MONTHLY',
                 cancel_at_period_end  = 0,
                 updated_at            = NOW()
           WHERE user_id = ?`,
-        [newPlan, user_id]
+        [newPlan, PLAN_ITEMS[newPlan].price, user_id]
       );
     }
 
@@ -153,7 +155,8 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
     next();
   } catch (err) {
     await conn.rollback();
-    next(err); // ⚠️ 글로벌 error-handler에서 동일 포맷으로 변환해 주는 것을 권장
+    console.log(err);
+    next(err);
   } finally {
     conn.release();
   }
@@ -193,13 +196,13 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
         err: true,
         msg: "아직 구독 기간이 끝나지 않았습니다.",
       });
-      return 
+      return;
     }
 
     /* ────────────────────────────────────────────────────────────── */
     const nextPlan: PlanName = sub.pending_plan_name || sub.plan_name;
     /* 3) 해지 예약인 경우 → 행 FREE 전환 */
-    if (sub.cancel_at_period_end || nextPlan === 'FREE') {
+    if (sub.cancel_at_period_end || nextPlan === "FREE") {
       await conn.query(
         `UPDATE subscriptions
             SET plan_name            = 'FREE',
@@ -213,14 +216,14 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
           WHERE user_id = ?`,
         [user_id]
       );
-    
+
       await conn.commit();
       next();
       return;
     }
 
     /* 4) 다음 주기 플랜·주기 결정 */
-    
+
     const nextCycle: "MONTHLY" | "YEARLY" =
       sub.pending_billing_cycle || sub.billing_cycle;
 
@@ -256,7 +259,7 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
     }
 
     await conn.commit();
-    next();    
+    next();
   } catch (err) {
     await conn.rollback();
     next(err); // 전역 핸들러가 { err:true, msg } 포맷으로 변환

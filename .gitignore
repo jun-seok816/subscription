@@ -139,3 +139,8 @@ out
 
 #mp3
 *.mp3
+
+#ServerSetting
+back-end/src/db.ts
+back-end/dist/db.js
+back-end/dist/db.js.map

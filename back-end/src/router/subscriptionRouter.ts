@@ -4,7 +4,7 @@ import {
   rollToNextPeriod,
 } from "../middleware/subscriptionMiddleware";
 import express from "express";
-import { SubscriptionRow, UserRow } from "@jsLib/all_Types";
+import { SubscriptionRow, UserRow } from "../all_Types";
 import { RowDataPacket } from "mysql2/promise";
 import { scheduleNext } from "../middleware/scheduleMiddleware";
 const router = express.Router();

@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 const PORTONE_API_SECRET = process.env.PORTONE_API_SECRET!; // imp_secret
 
 // ---------------------- 공용 유틸 ----------------------
-function formatDateTime(d: Date): string {  
+function formatDateTime(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
     d.getHours()
@@ -43,6 +43,10 @@ export const scheduleNext: RequestHandler = async (
           LIMIT 1`,
       [subscriptionId]
     );
+
+    const [sc_rows] = await process._myApp.db.promise().query<any[]>(
+      `SELECT * FROM subscription_schedules WHERE subscription_id = ?`
+    ,[subscriptionId])
     if (!rows.length) {
       res.status(404).json({ msg: "구독을 찾을 수 없습니다." });
       return;
@@ -59,23 +63,21 @@ export const scheduleNext: RequestHandler = async (
       sub.current_period_end ? new Date(sub.current_period_end) : null
     );
 
-    const PAYMENT_ID = `order_${uuidv4()}`;
-    const IDEMPOTENCY_KEY = uuidv4();
+    const PAYMENT_ID = encodeURIComponent(`order_${uuidv4()}`);    
     const BILLING_KEY = sub.portone_billing_key;
 
-    const url = `https://api.portone.io/payments/${encodeURIComponent(
-      PAYMENT_ID
-    )}/schedule`;
+    const url = `https://api.portone.io/payments/${PAYMENT_ID}/schedule`;
     const headers = {
       Authorization: `PortOne ${PORTONE_API_SECRET}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": IDEMPOTENCY_KEY,
+      "Content-Type": "application/json",      
     };
     const body = {
       payment: {
         billingKey: BILLING_KEY,
-        orderName: "정기결제 1회차",
-        amount: { total: Number(sub.price_cents || 0) },
+        orderName: `정기결제 ${sc_rows.length + 1}회차`,
+        amount: {
+          total: sub.price_cents,          
+        },
         currency: "KRW",
       },
       timeToPay: TIME_TO_PAY,
@@ -84,7 +86,7 @@ export const scheduleNext: RequestHandler = async (
     const { data, status } = await axios.post(url, body, { headers });
     console.log("[OK]", status, data);
 
-    // 5) DB에 스케줄 저장 
+    // 5) DB에 스케줄 저장
     await process._myApp.db.promise().query(
       `INSERT INTO subscription_schedules (payment_id, subscription_id, schedule_at, amount_krw, status)
          VALUES (?, ?, ?, ?, 'SCHEDULED')
@@ -94,7 +96,7 @@ export const scheduleNext: RequestHandler = async (
 
     next();
   } catch (err) {
-    console.error("[scheduleNext] error:", err);
+    console.log("[scheduleNext] error:", err);
     next(err);
   }
 };
