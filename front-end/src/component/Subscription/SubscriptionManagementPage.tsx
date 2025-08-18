@@ -88,7 +88,7 @@ export default function SubscriptionManagementPage(props: {
                 <span className="card__unit">KRW/월</span>
               </p>
               <p className="card__desc">
-                더 넉넉한 액세스로 생산성을 끌어올리세요
+                {plan[1].token_grant.toLocaleString()} token
               </p>
               <button
                 className="card__cta"

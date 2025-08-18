@@ -8,6 +8,7 @@ import {
 } from "@BackEnd/src/all_Types";
 import { Main } from "./Main_class";
 import { ToastContainer, toast } from "react-toastify";
+import { toSlug } from "@BackEnd/src/all_Store";
 
 interface StoreState {
   user: UserRow | null;
@@ -50,6 +51,28 @@ export class SubscriptionStore {
   /** 현재 플랜 이름 편의 접근자 */
   get planName(): PlanName | null {
     return this.state.subscription?.plan_name ?? null;
+  }
+
+  public async callFeature(label: string) {
+    const slug = toSlug(label);
+    try {
+      const { data } = await axios.post(`/feature/${slug}`);
+      const { msg ,cost} = data;
+      if(this.state.user?.token_balance){
+        this.state.user.token_balance -= cost;
+        this.im_forceRender();
+      }      
+      Main.im_toast(msg,"success");
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response) {
+        const { err, msg } = e.response.data;
+        console.error("API Error:", msg); // 👉 에러 메시지 사용
+        Main.im_toast(msg, "error");
+      } else {
+        console.error(e);
+        Main.im_toast("네트워크 오류가 발생했습니다.", "error");
+      }
+    }
   }
 
   /** 로그인 후 한 번 호출해 데이터를 메모리에 로드  */
@@ -153,7 +176,7 @@ export class SubscriptionStore {
       this.state = { user: userRes.data, subscription: subRes.data, planMeta };
       this.im_forceRender();
     } catch (e) {
-      console.error(e);      
+      console.error(e);
     }
   }
 

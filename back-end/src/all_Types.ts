@@ -56,7 +56,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
   },
   BASIC: {
     price: 2000,
-    token_grant:500,
+    token_grant:200,
     features: [
       { label: "Image", badge: "-10", disabled: false },
       { label: "Image Editing", badge: "-20", disabled: false },
@@ -68,7 +68,7 @@ export const PLAN_ITEMS: Record<PlanName, Plan> = {
   },
   PRO: {
     price: 4000,
-    token_grant:1000,
+    token_grant:300,
     features: [
       { label: "Image", badge: "-10", disabled: false },
       { label: "Image Editing", badge: "-20", disabled: false },
