@@ -1,8 +1,6 @@
 import { toSlug } from "../all_Store";
 import { Router } from "express";
-import { PLAN_ITEMS } from "../all_Types"; // 경로 맞게 수정
-
-
+import { PLAN_ITEMS } from "../all_Types"; 
 
 export function featureRouter() {
   const router = Router();

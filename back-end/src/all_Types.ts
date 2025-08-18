@@ -93,3 +93,14 @@ export interface UserRow {
 }
 
 export type Billing_key_status = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
+
+export interface SubscriptionScheduleRow {  
+  payment_id: string;
+  subscription_id: number;
+  schedule_at: string | Date;
+  amount_krw: number;
+  status: ScheduleStatus; 
+  created_at: string | Date;  
+}
+
+export type ScheduleStatus = "SCHEDULED" | "EXECUTED" | "CANCELLED";

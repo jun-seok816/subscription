@@ -1,12 +1,8 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
-import { RowDataPacket } from "mysql2"; // RowDataPacket 타입 추가
+import { RowDataPacket } from "mysql2";
 import { verifyWebhookSignature } from "../utils/iamportUtil";
 import { PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
 
-// ---------------------------------------------------------------------------
-// loadSubscription  ─ 현재 구독 정보 로드 & res.locals 에 저장
-//     SubscriptionRow 를 RowDataPacket 과 교차 타입으로 사용하여 제네릭 제약 해결
-// ---------------------------------------------------------------------------
 export const loadSubscription: RequestHandler = async (req, res, next) => {
   const userId = req.session.userId;
 
@@ -17,7 +13,25 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
         "SELECT * FROM subscriptions WHERE user_id = ?",
         [userId]
       );
+
+    const [user] = await process._myApp.db
+      .promise()
+      .query<RowDataPacket[]>(
+        "SELECT * FROM users WHERE id = ?",
+        [userId]
+      );
+
     res.locals.subscription = rows[0] ?? null;
+
+    const [subscription_schedules] = await process._myApp.db
+      .promise()
+      .query<RowDataPacket[]>(
+        "SELECT * FROM subscription_schedules WHERE subscription_id = ?",
+        [res.locals.subscription.id]
+      );
+
+    res.locals.subscription_schedules = subscription_schedules ?? null;
+    res.locals.user = user[0] ?? null;
     next();
   } catch (err) {
     console.log(err);

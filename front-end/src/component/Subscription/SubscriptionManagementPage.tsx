@@ -4,6 +4,7 @@ import "./SubscriptionManagementPage.scss";
 import { format } from "date-fns";
 import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 import Card from "./Card";
+import SubscriptionSchedulesTable from "./SubscriptionSchedulesTable";
 
 export default function SubscriptionManagementPage(props: {
   lv_Obj: Subscription;
@@ -28,7 +29,7 @@ export default function SubscriptionManagementPage(props: {
               <tr>
                 <th>다음 결제일</th>
                 <td>
-                  {lv_sub && lv_sub.current_period_end 
+                  {lv_sub && lv_sub.current_period_end
                     ? format(lv_sub.current_period_end, "yyyy-MM-dd")
                     : "다음 결제일 없음"}
                 </td>
@@ -119,6 +120,13 @@ export default function SubscriptionManagementPage(props: {
           </article>
         ))}
       </div>
+
+      {props.lv_Obj.pt_SubscriptionStore.schedule && (
+        <SubscriptionSchedulesTable
+          data={props.lv_Obj.pt_SubscriptionStore.schedule}
+          pageSize={5}
+        />
+      )}
     </div>
   );
 }

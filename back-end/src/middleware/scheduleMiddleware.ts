@@ -44,9 +44,12 @@ export const scheduleNext: RequestHandler = async (
       [subscriptionId]
     );
 
-    const [sc_rows] = await process._myApp.db.promise().query<any[]>(
-      `SELECT * FROM subscription_schedules WHERE subscription_id = ?`
-    ,[subscriptionId])
+    const [sc_rows] = await process._myApp.db
+      .promise()
+      .query<any[]>(
+        `SELECT * FROM subscription_schedules WHERE subscription_id = ?`,
+        [subscriptionId]
+      );
     if (!rows.length) {
       res.status(404).json({ msg: "구독을 찾을 수 없습니다." });
       return;
@@ -58,25 +61,29 @@ export const scheduleNext: RequestHandler = async (
       return;
     }
 
+    const headers = {
+      Authorization: `PortOne ${PORTONE_API_SECRET}`,
+      "Content-Type": "application/json",
+    };
+
+    const BILLING_KEY = sub.portone_billing_key;
+
     // 2) next schedule_at 계산 및 merchant_uid 생성
     const TIME_TO_PAY = computeNextAt(
       sub.current_period_end ? new Date(sub.current_period_end) : null
     );
 
-    const PAYMENT_ID = encodeURIComponent(`order_${uuidv4()}`);    
-    const BILLING_KEY = sub.portone_billing_key;
+    const PAYMENT_ID = encodeURIComponent(`order_${uuidv4()}`);
+    
 
     const url = `https://api.portone.io/payments/${PAYMENT_ID}/schedule`;
-    const headers = {
-      Authorization: `PortOne ${PORTONE_API_SECRET}`,
-      "Content-Type": "application/json",      
-    };
+
     const body = {
       payment: {
         billingKey: BILLING_KEY,
         orderName: `정기결제 ${sc_rows.length + 1}회차`,
         amount: {
-          total: sub.price_cents,          
+          total: sub.price_cents,
         },
         currency: "KRW",
       },

@@ -5,6 +5,7 @@ import {
   PlanName,
   PlanMeta,
   PLAN_ITEMS,
+  SubscriptionScheduleRow,
 } from "@BackEnd/src/all_Types";
 import { Main } from "./Main_class";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,6 +16,7 @@ interface StoreState {
   subscription: SubscriptionRow | null;
   /** PLAN_ITEMS + 청구 정보가 병합된 런타임 메타 */
   planMeta: PlanMeta | null;
+  schedule: SubscriptionScheduleRow[] | null;
 }
 
 interface ApiErrorPayload {
@@ -27,6 +29,7 @@ export class SubscriptionStore {
     user: null,
     subscription: null,
     planMeta: null,
+    schedule: null,
   };
 
   private im_forceRender: () => void;
@@ -43,6 +46,10 @@ export class SubscriptionStore {
     return this.state.subscription;
   }
 
+  get schedule(){
+    return this.state.schedule;
+  }
+
   /** 현재 플랜의 메타(가격·토큰·기능 목록) */
   get planMeta(): PlanMeta | null {
     return this.state.planMeta;
@@ -57,12 +64,12 @@ export class SubscriptionStore {
     const slug = toSlug(label);
     try {
       const { data } = await axios.post(`/feature/${slug}`);
-      const { msg ,cost} = data;
-      if(this.state.user?.token_balance){
+      const { msg, cost } = data;
+      if (this.state.user?.token_balance) {
         this.state.user.token_balance -= cost;
         this.im_forceRender();
-      }      
-      Main.im_toast(msg,"success");
+      }
+      Main.im_toast(msg, "success");
     } catch (e) {
       if (axios.isAxiosError(e) && e.response) {
         const { err, msg } = e.response.data;
@@ -74,17 +81,21 @@ export class SubscriptionStore {
       }
     }
   }
-
-  /** 로그인 후 한 번 호출해 데이터를 메모리에 로드  */
+  
   public async load(): Promise<void> {
     try {
       // 사용자 정보
       const userRes = await axios.post<UserRow>("/subscription/me");
       // 구독 정보 (1행)
-      const subRes = await axios.post<SubscriptionRow>("/subscription/load");
+      type load_res = {
+        sub: SubscriptionRow;
+        schedules: SubscriptionScheduleRow[];
+      };
+      const subRes = await axios.post<load_res>("/subscription/load");
 
       const user = userRes.data;
-      const sub = subRes.data;
+      const sub = subRes.data.sub;
+      const schedule = subRes.data.schedules;
 
       // ③ PLAN_ITEMS 와 병합
       const planMeta: PlanMeta = {
@@ -96,7 +107,7 @@ export class SubscriptionStore {
       };
 
       // ④ 상태 저장
-      this.state = { user, subscription: sub, planMeta };
+      this.state = { user, subscription: sub, planMeta, schedule };
 
       this.im_forceRender();
     } catch (e) {
@@ -117,22 +128,8 @@ export class SubscriptionStore {
         "/subscription/planChange",
         { plan_name }
       );
-      const userRes = await axios.post<UserRow>("/subscription/me");
-      const sub = subRes.data;
-      const user = userRes.data;
-      // ③ PLAN_ITEMS 와 병합
-      const planMeta: PlanMeta = {
-        plan_name: sub.plan_name,
-        billing_cycle: sub.billing_cycle,
-        price_cents: sub.price_cents,
-        token_grant: sub.token_grant,
-        items: PLAN_ITEMS[sub.plan_name].features,
-      };
-
-      // ④ 상태 저장
-      this.state = { user, subscription: sub, planMeta };
-
-      this.im_forceRender();
+      this.load();
+      
     } catch (e) {
       if (axios.isAxiosError(e) && e.response) {
         const { err, msg } = e.response.data;
@@ -162,19 +159,7 @@ export class SubscriptionStore {
         },
       });
 
-      const subRes = await subPromise; // 롤오버된 구독 행
-      const userRes = await axios.post<UserRow>("/subscription/me");
-
-      const planMeta: PlanMeta = {
-        plan_name: subRes.data.plan_name,
-        billing_cycle: subRes.data.billing_cycle,
-        price_cents: subRes.data.price_cents,
-        token_grant: subRes.data.token_grant,
-        items: PLAN_ITEMS[subRes.data.plan_name].features,
-      };
-
-      this.state = { user: userRes.data, subscription: subRes.data, planMeta };
-      this.im_forceRender();
+      this.load();
     } catch (e) {
       console.error(e);
     }
