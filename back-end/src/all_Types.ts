@@ -94,7 +94,9 @@ export interface UserRow {
 
 export type Billing_key_status = 'ACTIVE' | 'INACTIVE' | 'REVOKED';
 
-export interface SubscriptionScheduleRow {  
+export interface SubscriptionScheduleRow {
+  cancelled_at: string | Date | null ;
+  executed_at: string | Date | null ;  
   payment_id: string;
   subscription_id: number;
   schedule_at: string | Date;

@@ -5,13 +5,16 @@ import SubscriptionManagementPage from "./SubscriptionManagementPage";
 import { Main } from "../../class/Main_class";
 import LoginModal from "../Login/LoginModal";
 import { Payment } from "@jsLib/class/Payment";
+import ScheduleModal from "./SubscriptionSchedulesTable";
+
 
 export class Subscription extends Main {
   private iv_SubscriptionStore = new SubscriptionStore(
     this.im_forceRender.bind(this)
   );
-  private iv_Payement = new Payment();  
+  private iv_Payement = new Payment();
   public iv_loading = false;
+  public iv_schedule = false;
 
   constructor() {
     super();
@@ -21,7 +24,7 @@ export class Subscription extends Main {
     return this.iv_SubscriptionStore;
   }
 
-  get pt_Payment(){
+  get pt_Payment() {
     return this.iv_Payement;
   }
 }
@@ -35,10 +38,12 @@ export default function MainComponent() {
     lv_Obj.pt_SubscriptionStore.load();
   });
 
+
   return (
-    <>      
+    <>
       <LoginModal />
-      <div style={{ display: "flex" , height:"100%"}}>
+      <ScheduleModal lv_Obj={lv_Obj}/>
+      <div style={{ display: "flex", height: "100%" }}>
         <SideBar lv_Obj={lv_Obj} />
         <SubscriptionManagementPage lv_Obj={lv_Obj} />
       </div>

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 import "./SideBar.scss";
 import { Subscription } from "./Main";
-import "bootstrap-icons/font/bootstrap-icons.css"
+import "bootstrap-icons/font/bootstrap-icons.css";
 import { Main } from "@jsLib/class/Main_class";
 
 export default function SideBar(props: { lv_Obj: Subscription }) {
@@ -14,6 +14,20 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
       <div>
         <Labels lv_Obj={props.lv_Obj} />
       </div>
+      <div>
+        <div className="nptubnbowbpeih27">
+          <nav className="sidebar__section">
+            <span className="sidebar__title">결제 기록</span>
+            <span className="sidebar__item" onClick={()=>{
+              props.lv_Obj.iv_schedule = true;
+              props.lv_Obj.im_forceRender();
+            }}>              
+              <span className="sidebar__label">구독 스케쥴</span>
+              <div className="sidebar__badge">+{props.lv_Obj.pt_SubscriptionStore.schedule?.length}</div>
+            </span>
+          </nav>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -21,10 +35,10 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
 function Labels(props: { lv_Obj: Subscription }) {
   const SECTIONS = props.lv_Obj.pt_SubscriptionStore.planMeta?.items ?? [];
   const ICONS: Record<string, string> = {
-    "Image": "bi-image",
+    Image: "bi-image",
     "Image Editing": "bi-brush",
-    "Video": "bi-camera-video",
-    "Document": "bi-file-earmark-text",
+    Video: "bi-camera-video",
+    Document: "bi-file-earmark-text",
     "Custom Model": "bi-gear",
     "Video Editing": "bi-scissors",
   };
@@ -40,10 +54,13 @@ function Labels(props: { lv_Obj: Subscription }) {
           // 매핑된 아이콘이 없으면 bi-question-circle
           const iconClass = ICONS[e.label] || "bi-question-circle";
           return (
-            <span onClick={()=>{
-              if(e.disabled)return Main.im_toast("access denied",'warn');
-              props.lv_Obj.pt_SubscriptionStore.callFeature(e.label);
-            }} {...common}>
+            <span
+              onClick={() => {
+                if (e.disabled) return Main.im_toast("access denied", "warn");
+                props.lv_Obj.pt_SubscriptionStore.callFeature(e.label);
+              }}
+              {...common}
+            >
               <i className={`sidebar__icon bi ${iconClass}`} />
               <span className="sidebar__label">{e.label}</span>
               <div className="sidebar__badge">{e.badge}</div>

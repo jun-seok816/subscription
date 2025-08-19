@@ -1,60 +1,59 @@
+import { fmt } from "@allStore";
+import { ScheduleStatus, SubscriptionScheduleRow } from "@allType";
 import React, { useMemo, useState } from "react";
 import "./SubscriptionSchedulesTable.scss";
-
-export type ScheduleStatus = "SCHEDULED" | "EXECUTED" | "CANCELLED" | "FAILED";
-
-export interface SubscriptionScheduleRow {
-  // DB 컬럼 (필수)
-  payment_id: string;
-  subscription_id: number;
-  schedule_at: string | Date;
-  amount_krw: number;
-  status: ScheduleStatus; // DB에는 FAILED가 없지만 UI 호환 위해 허용
-  created_at: string | Date;
-
-  // UI 확장 컬럼 (선택)
-  executed_at?: string | Date | null;   // 완료일시
-  cancelled_at?: string | Date | null;  // 해지일시
-  gateway?: string | null;              // 결제대행사
-  routing_group?: string | null;        // 라우팅그룹
-  customer_name?: string | null;        // 고객 이름
-  customer_external_id?: string | null; // 고객 식별 정보(예: 해시/키)
-}
+import Modal from "react-modal";
+import { Subscription } from "./Main";
 
 export interface SubscriptionSchedulesTableProps {
   data: SubscriptionScheduleRow[];
-  pageSize?: number; // 기본 10
-}
-
-const statusLabel: Record<ScheduleStatus, string> = {
-  SCHEDULED: "예약",
-  EXECUTED: "성공",
-  CANCELLED: "해지",
-  FAILED: "실패",
-};
-
-function pad(n: number) {
-  return n < 10 ? `0${n}` : `${n}`;
-}
-
-function fmt(dt?: string | Date | null) {
-  if (!dt) return "-";
-  const d = typeof dt === "string" ? new Date(dt) : dt;
-  if (Number.isNaN(d.getTime())) return "-";
-  const y = d.getFullYear();
-  const m = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
+  pageSize?: number;
 }
 
 function moneyKRW(v: number) {
   return v.toLocaleString("ko-KR");
 }
 
-export default function SubscriptionSchedulesTable({
+const statusLabel: Record<ScheduleStatus, string> = {
+  SCHEDULED: "예약",
+  EXECUTED: "성공",
+  CANCELLED: "해지",
+};
+
+export default function ScheduleModal(props: { lv_Obj: Subscription }) {
+  const customStyles = {
+    content: {
+      top: "50%",
+      left: "50%",
+      right: "auto",
+      bottom: "auto",
+      marginRight: "-50%",
+      transform: "translate(-50%, -50%)",
+    },
+  };
+
+  Modal.setAppElement("#app");
+  return (
+    <Modal
+      isOpen={props.lv_Obj.iv_schedule}
+      onRequestClose={() => {
+        props.lv_Obj.iv_schedule = false;
+        props.lv_Obj.im_forceRender();
+      }}
+      style={customStyles}
+      contentLabel="schedule Modal"
+    >
+      {props.lv_Obj.pt_SubscriptionStore.schedule && (
+        <SubscriptionSchedulesTable
+          data={props.lv_Obj.pt_SubscriptionStore.schedule}
+          pageSize={5}
+        />
+      )}
+    </Modal>
+  );
+}
+
+function SubscriptionSchedulesTable({
   data,
   pageSize = 10,
 }: SubscriptionSchedulesTableProps) {
@@ -62,13 +61,20 @@ export default function SubscriptionSchedulesTable({
   const [page, setPage] = useState(1);
 
   const counts = useMemo(() => {
-    const base = { ALL: data.length, SCHEDULED: 0, EXECUTED: 0, FAILED: 0, CANCELLED: 0 };
+    const base = {
+      ALL: data.length,
+      SCHEDULED: 0,
+      EXECUTED: 0,
+      FAILED: 0,
+      CANCELLED: 0,
+    };
     for (const r of data) (base as any)[r.status] = (base as any)[r.status] + 1;
     return base;
   }, [data]);
 
   const filtered = useMemo(() => {
-    const rows = filter === "ALL" ? data : data.filter((r) => r.status === filter);
+    const rows =
+      filter === "ALL" ? data : data.filter((r) => r.status === filter);
     return rows;
   }, [data, filter]);
 
@@ -78,10 +84,6 @@ export default function SubscriptionSchedulesTable({
   function changeFilter(next: "ALL" | ScheduleStatus) {
     setFilter(next);
     setPage(1);
-  }
-
-  function copy(text: string) {
-    navigator.clipboard?.writeText(text).catch(() => {});
   }
 
   return (
@@ -107,12 +109,6 @@ export default function SubscriptionSchedulesTable({
           성공 <span className="pill">{counts.EXECUTED}</span>
         </button>
         <button
-          className={`tab ${filter === "FAILED" ? "active" : ""}`}
-          onClick={() => changeFilter("FAILED")}
-        >
-          실패 <span className="pill">{counts.FAILED}</span>
-        </button>
-        <button
           className={`tab ${filter === "CANCELLED" ? "active" : ""}`}
           onClick={() => changeFilter("CANCELLED")}
         >
@@ -133,26 +129,18 @@ export default function SubscriptionSchedulesTable({
               <th className="col-id">
                 고객사 거래번호
                 <span className="info">
-                  i
-                  <span className="tooltip">가맹점 주문/결제 고유번호 등</span>
+                  i<span className="tooltip">가맹점 주문/결제 고유번호 등</span>
                 </span>
               </th>
-              <th className="col-gw">
-                결제대행사·라우팅그룹
-                <span className="info">
-                  i
-                  <span className="tooltip">예: 카카오페이 · 그룹명</span>
-                </span>
-              </th>
-              <th className="col-name">고객이름</th>
-              <th className="col-ext">고객 식별 정보</th>
               <th className="col-amt">금액(₩)</th>
             </tr>
           </thead>
           <tbody>
             {pageRows.length === 0 && (
               <tr>
-                <td className="empty" colSpan={10}>데이터가 없습니다.</td>
+                <td className="empty" colSpan={10}>
+                  데이터가 없습니다.
+                </td>
               </tr>
             )}
             {pageRows.map((r) => (
@@ -172,18 +160,6 @@ export default function SubscriptionSchedulesTable({
                 <td className="col-id">
                   <div className="id-cell" title={r.payment_id}>
                     <span className="ellipsis">{r.payment_id}</span>
-                    <button className="copy" onClick={() => copy(r.payment_id)}>복사</button>
-                  </div>
-                </td>
-                <td>
-                  <div className="ellipsis" title={`${r.gateway ?? "-"}${r.routing_group ? " · " + r.routing_group : ""}`}>
-                    {r.gateway ?? "-"}{r.routing_group ? " · " + r.routing_group : ""}
-                  </div>
-                </td>
-                <td>{r.customer_name ?? "-"}</td>
-                <td className="mono">
-                  <div className="ellipsis" title={r.customer_external_id ?? "-"}>
-                    {r.customer_external_id ?? "-"}
                   </div>
                 </td>
                 <td className="mono amt">{moneyKRW(r.amount_krw)}</td>
@@ -234,4 +210,3 @@ export default function SubscriptionSchedulesTable({
     </div>
   );
 }
-

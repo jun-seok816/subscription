@@ -4,13 +4,14 @@ import "./SubscriptionManagementPage.scss";
 import { format } from "date-fns";
 import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 import Card from "./Card";
-import SubscriptionSchedulesTable from "./SubscriptionSchedulesTable";
+
 
 export default function SubscriptionManagementPage(props: {
   lv_Obj: Subscription;
 }) {
   const lv_user = props.lv_Obj.pt_SubscriptionStore.user;
   const lv_sub = props.lv_Obj.pt_SubscriptionStore.subscription;
+
   return (
     <div className="sub-dashboard">
       <section className="sub-dashboard__current">
@@ -121,12 +122,7 @@ export default function SubscriptionManagementPage(props: {
         ))}
       </div>
 
-      {props.lv_Obj.pt_SubscriptionStore.schedule && (
-        <SubscriptionSchedulesTable
-          data={props.lv_Obj.pt_SubscriptionStore.schedule}
-          pageSize={5}
-        />
-      )}
+
     </div>
   );
 }
