@@ -1,6 +1,6 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
 import { RowDataPacket } from "mysql2";
-import { PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
+import { PlanChangeType, PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
 
 export const loadSubscription: RequestHandler = async (req, res, next) => {
   const userId = req.session.userId;
@@ -91,7 +91,7 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
     }
 
     const isUpgrade = PLAN_RANK[newPlan] > PLAN_RANK[sub.plan_name as PlanName];
-
+    res.locals.planChange = isUpgrade ? "UPGRADE" :"DOWNGRADE" as PlanChangeType ;
     // ─── 4) 업그레이드 경로 ────────────────────────────
     if (isUpgrade) {
       await conn.query(

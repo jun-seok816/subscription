@@ -1,6 +1,114 @@
 import { Request, Response, NextFunction } from "express";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 
+type PlanChangeType = "UPGRADE" | "DOWNGRADE" | "SAME";
+
+/**결제 AND 기록 */
+export async function payNowAndRecord(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const flags: PlanChangeType | undefined = res.locals.planChange;
+    if (!flags) return next(new Error("planChange 플래그 누락"));
+    if(flags === "DOWNGRADE"){
+      next()
+      return;
+    }
+
+    const subscriptionId: number | null =
+      Number(res.locals.subscription?.id) || null;
+
+    const billingKey: string =
+      res.locals.subscription?.portone_billing_key      
+      "";
+
+    const amount = Number(res.locals.subscription?.price_cents);
+    const currency = ("KRW").toUpperCase();
+    const orderName = res.locals.order_name || "즉시결제";
+
+    if (!billingKey) throw new Error("billingKey 필요");
+    if (!Number.isFinite(amount) || amount <= 0)
+      throw new Error("amount(결제 금액) 필요");
+
+    const paymentId = encodeURIComponent(`pay_${uuidv4()}`);
+
+    // PortOne 결제 요청
+    const url = `https://api.portone.io/payments/${paymentId}/billing-key`;
+    const headers = {
+      Authorization: `PortOne ${process.env.PORTONE_API_SECRET}`,
+      "Content-Type": "application/json",
+    };
+    const payload = {
+      billingKey,
+      orderName,
+      amount, 
+      currency, 
+    };
+
+    const { data, status } = await axios.post(url, payload, { headers });
+    if (status < 200 || status >= 300) {
+      throw new Error(`PortOne 결제 실패 status=${status}`);
+    }
+
+    // PortOne 응답에서 식별자/영수증 URL 추출(필드명 변동 대비 안전하게)
+    const portoneTxId = data.payment.pgTxId
+
+    // user_id 확보
+    let userId: number | null =
+      Number(res.locals.subscription?.user_id) || null;
+
+    if (!userId && subscriptionId) {
+      const [[row]]: any = await process._myApp.db
+        .promise()
+        .query(`SELECT user_id FROM subscriptions WHERE id = ? LIMIT 1`, [
+          subscriptionId,
+        ]);
+      userId = row?.user_id ? Number(row.user_id) : null;
+    }
+    if (!userId) throw new Error("user_id 확인 실패");
+
+    // 성공 결제 히스토리 저장 (idempotent)
+    await process._myApp.db.promise().query(
+      `INSERT INTO payments
+           (user_id, subscription_id, payment_id, portone_tx_id, order_name, amount_krw, currency,  paid_at, created_at)
+         VALUES
+           (?,       ?,               ?,          ?,             ?,          ?,          ?,         NOW(),  NOW())
+         ON DUPLICATE KEY UPDATE
+           portone_tx_id = VALUES(portone_tx_id),
+           receipt_url   = VALUES(receipt_url),
+           paid_at       = NOW(),
+           updated_at    = NOW()`,
+      [
+        userId,
+        subscriptionId,
+        paymentId,
+        portoneTxId,
+        orderName,
+        amount,
+        currency,
+      ]
+    );
+
+    // 다음 미들웨어에서 쓰도록 결과 공유
+    res.locals.payment = {
+      paymentId,
+      portoneTxId,
+      amount,
+      currency,      
+      userId,
+      subscriptionId,
+    };
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**결제 스케줄 삭제 */
 export async function cancelPortoneSchedules(
   req: Request,
   res: Response,
@@ -8,8 +116,7 @@ export async function cancelPortoneSchedules(
 ) {
   try {
     const subscriptionId = Number(res.locals.subscription?.id);
-    const BILLING_KEY =
-      res.locals?.user?.portone_billing_key;
+    const BILLING_KEY = res.locals?.user?.portone_billing_key;
 
     if (!subscriptionId) throw new Error("subscriptionId 필요");
     if (!BILLING_KEY) throw new Error("billingKey 필요");

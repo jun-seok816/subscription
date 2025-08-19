@@ -106,4 +106,6 @@ export interface SubscriptionScheduleRow {
   product_name:string;
 }
 
+export type PlanChangeType = "UPGRADE" | "DOWNGRADE" | "SAME";
+
 export type ScheduleStatus = "SCHEDULED" | "EXECUTED" | "CANCELLED";

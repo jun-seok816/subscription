@@ -7,7 +7,7 @@ import express from "express";
 import { SubscriptionRow, UserRow } from "../all_Types";
 import { RowDataPacket } from "mysql2/promise";
 import { scheduleNext } from "../middleware/scheduleMiddleware";
-import { cancelPortoneSchedules } from "../middleware/billingKeyMiddleware";
+import { cancelPortoneSchedules,payNowAndRecord } from "../middleware/billingKeyMiddleware";
 const router = express.Router();
 
 router.post(
@@ -50,29 +50,31 @@ router.post("/me", process._myApp.checkSession, async (req, res) => {
 });
 
 router.post(
-  "/planChange",
-  process._myApp.checkSession,
-  applyPlanChange,
-  loadSubscription,
-  cancelPortoneSchedules,
-  scheduleNext,
+  "/planChange", //플랜 변경 시 호출
+  process._myApp.checkSession, //로그인 세션 확인
+  applyPlanChange, // 플랜 변경 로직
+  loadSubscription, // 사용자 구독 정보 로드
+  payNowAndRecord, // 결제 & 결제내역 저장
+  cancelPortoneSchedules, // 포트원 예약 삭제
+  scheduleNext, // 포트원 예약
   (req, res) => {
     const lv_data: SubscriptionRow = res.locals.subscription;
     res.send(lv_data);
   }
 );
 
-router.post(
-  "/nextPeriod",
-  process._myApp.checkSession,
-  rollToNextPeriod,
-  loadSubscription,
-  cancelPortoneSchedules,
-  scheduleNext,
-  (req, res) => {
-    const lv_data: SubscriptionRow = res.locals.subscription;
-    res.send(lv_data);
-  }
-);
+// /**디버깅 용 */
+// router.post(
+//   "/nextPeriod",
+//   process._myApp.checkSession,
+//   rollToNextPeriod,
+//   loadSubscription,
+//   cancelPortoneSchedules,
+//   scheduleNext,
+//   (req, res) => {
+//     const lv_data: SubscriptionRow = res.locals.subscription;
+//     res.send(lv_data);
+//   }
+// );
 
 export default router;
