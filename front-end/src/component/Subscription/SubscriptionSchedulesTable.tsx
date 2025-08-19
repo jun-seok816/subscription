@@ -127,10 +127,7 @@ function SubscriptionSchedulesTable({
               <th className="col-datetime">완료일시</th>
               <th className="col-datetime">해지일시</th>
               <th className="col-id">
-                고객사 거래번호
-                <span className="info">
-                  i<span className="tooltip">가맹점 주문/결제 고유번호 등</span>
-                </span>
+                상품명                
               </th>
               <th className="col-amt">금액(₩)</th>
             </tr>
@@ -148,18 +145,15 @@ function SubscriptionSchedulesTable({
                 <td className="col-status">
                   <span className={`badge ${r.status.toLowerCase()}`}>
                     {statusLabel[r.status]}
-                  </span>
-                  {r.status === "SCHEDULED" && (
-                    <div className="sub-action">예약 변경·해지</div>
-                  )}
+                  </span>             
                 </td>
                 <td className="mono">{fmt(r.created_at)}</td>
                 <td className="mono">{fmt(r.schedule_at)}</td>
                 <td className="mono">{fmt(r.executed_at)}</td>
                 <td className="mono">{fmt(r.cancelled_at)}</td>
                 <td className="col-id">
-                  <div className="id-cell" title={r.payment_id}>
-                    <span className="ellipsis">{r.payment_id}</span>
+                  <div className="id-cell">
+                    <span className="ellipsis">{r.product_name}</span>
                   </div>
                 </td>
                 <td className="mono amt">{moneyKRW(r.amount_krw)}</td>

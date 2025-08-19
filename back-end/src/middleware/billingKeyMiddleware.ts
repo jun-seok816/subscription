@@ -17,7 +17,8 @@ export async function cancelPortoneSchedules(
     // DB 상태 취소로 마킹
     await process._myApp.db.promise().query(
       `UPDATE subscription_schedules
-           SET status = 'CANCELLED'
+           SET status = 'CANCELLED',
+           cancelled_at = NOW()
          WHERE subscription_id = ?`,
       [subscriptionId]
     );

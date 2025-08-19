@@ -1,6 +1,5 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
 import { RowDataPacket } from "mysql2";
-import { verifyWebhookSignature } from "../utils/iamportUtil";
 import { PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
 
 export const loadSubscription: RequestHandler = async (req, res, next) => {
@@ -26,7 +25,7 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
     const [subscription_schedules] = await process._myApp.db
       .promise()
       .query<RowDataPacket[]>(
-        "SELECT * FROM subscription_schedules WHERE subscription_id = ?",
+        "SELECT * FROM subscription_schedules WHERE subscription_id = ? ORDER BY created_at DESC",
         [res.locals.subscription.id]
       );
 
@@ -39,30 +38,6 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------------------------
-// validatePlanChange  ─ 플랜 변경 정책 검사(월 1회 제한, 업/다운 규칙 등)
-// ---------------------------------------------------------------------------
-export const validatePlanChange: RequestHandler = (req, res, next) => {
-  const { subscription } = res.locals;
-  const { plan_name, billing_cycle } = req.body;
-
-  if (!plan_name) {
-    res.status(400).json({ message: "plan_name 파라미터가 필요합니다." });
-    return;
-  }
-
-  // 월 1회 변경 제한 예시
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-  if (subscription && subscription.updated_at > oneMonthAgo) {
-    res.status(400).json({ message: "플랜 변경은 월 1회만 가능합니다." });
-    return;
-  }
-
-  // 업그레이드 / 다운그레이드 정책 간단 예시 (가격 비교)
-  res.locals.planChange = { plan_name, billing_cycle };
-  next();
-};
 
 // ---------------------------------------------------------------------------
 // applyPlanChange  ─ 트랜잭션으로 구독 업데이트 & 토큰 증감
@@ -282,32 +257,3 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
   }
 };
 
-// ---------------------------------------------------------------------------
-// 6) verifyIamportWebhook  ─ 아임포트 Webhook 서명 검증 & 중복 처리 방지
-// ---------------------------------------------------------------------------
-export const verifyIamportWebhook: RequestHandler = (req, res, next) => {
-  if (!verifyWebhookSignature(req)) {
-    res.status(401).json({ err: true, msg: "잘못된 Webhook 서명입니다." });
-    return;
-  }
-  next();
-};
-
-// ---------------------------------------------------------------------------
-// 7) grantTokensOnRenewal  ─ (Cron 또는 수동 호출) 구독 갱신 시 토큰 지급
-// ---------------------------------------------------------------------------
-export const grantTokensOnRenewal: RequestHandler = async (req, res, next) => {
-  try {
-    await process._myApp.db.promise().query(
-      `UPDATE users u
-       JOIN subscriptions s ON u.id = s.user_id
-       SET u.token_balance = u.token_balance + s.token_grant,
-           s.current_period_end = DATE_ADD(s.current_period_end, INTERVAL 1 MONTH)
-       WHERE s.current_period_end <= NOW()`
-    );
-    res.locals.result = { renewed: true };
-    next();
-  } catch (err) {
-    next(err);
-  }
-};

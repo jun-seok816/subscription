@@ -103,6 +103,7 @@ export interface SubscriptionScheduleRow {
   amount_krw: number;
   status: ScheduleStatus; 
   created_at: string | Date;  
+  product_name:string;
 }
 
 export type ScheduleStatus = "SCHEDULED" | "EXECUTED" | "CANCELLED";

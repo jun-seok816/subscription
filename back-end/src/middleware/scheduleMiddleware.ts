@@ -35,14 +35,14 @@ export const scheduleNext: RequestHandler = async (
 
     // 1) 구독 + 유저 조인 조회 (필수 컬럼만)
     const [rows] = await process._myApp.db.promise().query<any[]>(
-      `SELECT s.id as sub_id, s.user_id, s.price_cents, s.current_period_end,
+      `SELECT s.id as sub_id, s.user_id, s.price_cents, s.current_period_end, s.plan_name,
                 u.portone_customer_id, u.billing_key_status, u.portone_billing_key
            FROM subscriptions s
            JOIN users u ON u.id = s.user_id
           WHERE s.id = ?
           LIMIT 1`,
       [subscriptionId]
-    );
+    );    
 
     const [sc_rows] = await process._myApp.db
       .promise()
@@ -59,6 +59,11 @@ export const scheduleNext: RequestHandler = async (
     if (!sub.portone_customer_id || sub.billing_key_status !== "ACTIVE") {
       res.status(409).json({ msg: "빌링키가 활성 상태가 아닙니다." });
       return;
+    }
+
+    if(sub.price_cents === 0){
+      next();
+      return
     }
 
     const headers = {
@@ -95,10 +100,10 @@ export const scheduleNext: RequestHandler = async (
 
     // 5) DB에 스케줄 저장
     await process._myApp.db.promise().query(
-      `INSERT INTO subscription_schedules (payment_id, subscription_id, schedule_at, amount_krw, status)
-         VALUES (?, ?, ?, ?, 'SCHEDULED')
+      `INSERT INTO subscription_schedules (payment_id, subscription_id, schedule_at, amount_krw, status ,product_name)
+         VALUES (?, ?, ?, ?, 'SCHEDULED',?)
          ON DUPLICATE KEY UPDATE schedule_at = VALUES(schedule_at), amount_krw = VALUES(amount_krw)`,
-      [PAYMENT_ID, subscriptionId, formatDateTime(TIME_TO_PAY), sub.price_cents]
+      [PAYMENT_ID, subscriptionId, formatDateTime(TIME_TO_PAY), sub.price_cents ,sub.plan_name]
     );
 
     next();
