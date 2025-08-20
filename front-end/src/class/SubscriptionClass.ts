@@ -141,29 +141,6 @@ export class SubscriptionStore {
     }
   }
 
-  public async rollNext(force = false): Promise<void> {
-    try {
-      const subPromise = axios.post<SubscriptionRow>(
-        "/subscription/nextPeriod",
-        { force }
-      );
-
-      toast.promise(subPromise, {
-        pending: "다음 주기로 이동 중…",
-        success: "새 구독 주기가 시작됐습니다!",
-        error: {
-          render({ data }) {
-            const err = (data as AxiosError<ApiErrorPayload>).response?.data;
-            return err?.msg ?? "주기 이동 실패";
-          },
-        },
-      });
-
-      this.load();
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
   /** 토큰 잔액 갱신용 메서드(예: 결제/차감 후) */
   public updateTokenBalance(delta: number) {

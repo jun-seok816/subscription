@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 import Card from "./Card";
 
-
 export default function SubscriptionManagementPage(props: {
   lv_Obj: Subscription;
 }) {
@@ -56,16 +55,6 @@ export default function SubscriptionManagementPage(props: {
                       }}
                     >
                       <div>{lv_sub && lv_sub.pending_plan_name}</div>
-                      <button
-                        className="btn__red"
-                        onClick={async () => {
-                          await props.lv_Obj.pt_SubscriptionStore.rollNext(
-                            true
-                          );
-                        }}
-                      >
-                        다음 주기로 이동
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -121,8 +110,6 @@ export default function SubscriptionManagementPage(props: {
           </article>
         ))}
       </div>
-
-
     </div>
   );
 }
