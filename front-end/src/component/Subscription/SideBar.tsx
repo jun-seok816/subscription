@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
 import "./SideBar.scss";
 import { Subscription } from "./Main";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -24,6 +23,13 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
             }}>              
               <span className="sidebar__label">구독 스케쥴</span>
               <div className="sidebar__badge">+{props.lv_Obj.pt_SubscriptionStore.schedule?.length}</div>
+            </span>
+            <span className="sidebar__item" onClick={()=>{
+              props.lv_Obj.iv_payments = true;
+              props.lv_Obj.im_forceRender();
+            }}>              
+              <span className="sidebar__label">청구서 내역</span>
+              <div className="sidebar__badge">+{props.lv_Obj.pt_SubscriptionStore.payments?.length}</div>
             </span>
           </nav>
         </div>

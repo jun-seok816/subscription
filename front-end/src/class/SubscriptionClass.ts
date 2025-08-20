@@ -6,9 +6,10 @@ import {
   PlanMeta,
   PLAN_ITEMS,
   SubscriptionScheduleRow,
+  PaymentsRow,
+  PaymentsPublic,
 } from "@BackEnd/src/all_Types";
 import { Main } from "./Main_class";
-import { ToastContainer, toast } from "react-toastify";
 import { toSlug } from "@BackEnd/src/all_Store";
 
 interface StoreState {
@@ -17,11 +18,7 @@ interface StoreState {
   /** PLAN_ITEMS + 청구 정보가 병합된 런타임 메타 */
   planMeta: PlanMeta | null;
   schedule: SubscriptionScheduleRow[] | null;
-}
-
-interface ApiErrorPayload {
-  err: boolean;
-  msg: string;
+  payments: PaymentsPublic[] | null;
 }
 
 export class SubscriptionStore {
@@ -30,6 +27,7 @@ export class SubscriptionStore {
     subscription: null,
     planMeta: null,
     schedule: null,
+    payments:null,
   };
 
   private im_forceRender: () => void;
@@ -48,6 +46,10 @@ export class SubscriptionStore {
 
   get schedule(){
     return this.state.schedule;
+  }
+
+  get payments(){
+    return this.state.payments;
   }
 
   /** 현재 플랜의 메타(가격·토큰·기능 목록) */
@@ -73,7 +75,7 @@ export class SubscriptionStore {
     } catch (e) {
       if (axios.isAxiosError(e) && e.response) {
         const { err, msg } = e.response.data;
-        console.error("API Error:", msg); // 👉 에러 메시지 사용
+        console.error("API Error:", msg); 
         Main.im_toast(msg, "error");
       } else {
         console.error(e);
@@ -90,12 +92,14 @@ export class SubscriptionStore {
       type load_res = {
         sub: SubscriptionRow;
         schedules: SubscriptionScheduleRow[];
+        payments:PaymentsPublic[];
       };
       const subRes = await axios.post<load_res>("/subscription/load");
 
       const user = userRes.data;
       const sub = subRes.data.sub;
       const schedule = subRes.data.schedules;
+      const payments = subRes.data.payments;
 
       // ③ PLAN_ITEMS 와 병합
       const planMeta: PlanMeta = {
@@ -107,7 +111,7 @@ export class SubscriptionStore {
       };
 
       // ④ 상태 저장
-      this.state = { user, subscription: sub, planMeta, schedule };
+      this.state = { user, subscription: sub, planMeta, schedule ,payments };
 
       this.im_forceRender();
     } catch (e) {

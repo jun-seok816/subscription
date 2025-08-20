@@ -109,3 +109,22 @@ export interface SubscriptionScheduleRow {
 export type PlanChangeType = "UPGRADE" | "DOWNGRADE" | "SAME";
 
 export type ScheduleStatus = "SCHEDULED" | "EXECUTED" | "CANCELLED";
+
+export type PaymentsRow = {
+  id: number;
+  user_id: number;
+  subscription_id: number | null;
+  payment_id: string;
+  portone_tx_id: string | null;
+  order_name: string;
+  amount_krw: number;
+  currency: string;          
+  paid_at: string;           
+  created_at: string;   
+  is_success:0|1;     
+};
+
+export type PaymentsPublic = Pick<
+  PaymentsRow,
+  "id" | "subscription_id" | "order_name" | "amount_krw" | "currency" | "paid_at" | "is_success"
+>;

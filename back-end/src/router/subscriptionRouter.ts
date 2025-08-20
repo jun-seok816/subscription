@@ -17,9 +17,11 @@ router.post(
   (req, res) => {
     const lv_data: SubscriptionRow = res.locals.subscription;
     const lv_subscription_schedules = res.locals.subscription_schedules;    
+    const lv_payments = res.locals.payments;
     res.send({
       sub:lv_data,
-      schedules:lv_subscription_schedules
+      schedules:lv_subscription_schedules,
+      payments:lv_payments
     });
   }
 );

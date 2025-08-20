@@ -1,6 +1,12 @@
 import { RequestHandler, ErrorRequestHandler } from "express";
 import { RowDataPacket } from "mysql2";
-import { PlanChangeType, PlanName, PLAN_ITEMS, PLAN_RANK, SubscriptionRow } from "../all_Types";
+import {
+  PlanChangeType,
+  PlanName,
+  PLAN_ITEMS,
+  PLAN_RANK,
+  SubscriptionRow,
+} from "../all_Types";
 
 export const loadSubscription: RequestHandler = async (req, res, next) => {
   const userId = req.session.userId;
@@ -15,10 +21,7 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
 
     const [user] = await process._myApp.db
       .promise()
-      .query<RowDataPacket[]>(
-        "SELECT * FROM users WHERE id = ?",
-        [userId]
-      );
+      .query<RowDataPacket[]>("SELECT * FROM users WHERE id = ?", [userId]);
 
     res.locals.subscription = rows[0] ?? null;
 
@@ -29,7 +32,15 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
         [res.locals.subscription.id]
       );
 
+    const [payments] = await process._myApp.db
+      .promise()
+      .query<RowDataPacket[]>(
+        "SELECT payment_id,order_name,is_success,amount_krw,paid_at FROM payments WHERE user_id = ? ",
+        [userId]
+      );
+
     res.locals.subscription_schedules = subscription_schedules ?? null;
+    res.locals.payments = payments ?? null;
     res.locals.user = user[0] ?? null;
     next();
   } catch (err) {
@@ -37,7 +48,6 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // ---------------------------------------------------------------------------
 // applyPlanChange  ─ 트랜잭션으로 구독 업데이트 & 토큰 증감
@@ -91,7 +101,9 @@ export const applyPlanChange: RequestHandler = async (req, res, next) => {
     }
 
     const isUpgrade = PLAN_RANK[newPlan] > PLAN_RANK[sub.plan_name as PlanName];
-    res.locals.planChange = isUpgrade ? "UPGRADE" :"DOWNGRADE" as PlanChangeType ;
+    res.locals.planChange = isUpgrade
+      ? "UPGRADE"
+      : ("DOWNGRADE" as PlanChangeType);
     // ─── 4) 업그레이드 경로 ────────────────────────────
     if (isUpgrade) {
       await conn.query(
@@ -256,4 +268,3 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
     conn.release();
   }
 };
-

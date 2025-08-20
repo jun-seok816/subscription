@@ -109,7 +109,7 @@ app.use((err: any, req: any, res: any, next: any) => {
 
   res.status(status).json({
     err: true,
-    msg: err.message ?? "서버 오류가 발생했습니다.",
+    msg: "서버 오류가 발생했습니다.",
   });
 });
 

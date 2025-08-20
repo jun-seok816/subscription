@@ -13,21 +13,21 @@ export async function payNowAndRecord(
   try {
     const flags: PlanChangeType | undefined = res.locals.planChange;
     if (!flags) return next(new Error("planChange 플래그 누락"));
-    if(flags === "DOWNGRADE"){
-      next()
+    if (flags === "DOWNGRADE") {
+      next();
       return;
     }
 
     const subscriptionId: number | null =
       Number(res.locals.subscription?.id) || null;
 
-    const billingKey: string =
-      res.locals.subscription?.portone_billing_key      
-      "";
+    const billingKey: string = res.locals.user?.portone_billing_key;
+    ("");
 
     const amount = Number(res.locals.subscription?.price_cents);
-    const currency = ("KRW").toUpperCase();
-    const orderName = res.locals.order_name || "즉시결제";
+    const currency = "KRW".toUpperCase();
+    const orderName =
+      `${res.locals.subscription_schedules.length + 1} 회차 결제` || "즉시결제";
 
     if (!billingKey) throw new Error("billingKey 필요");
     if (!Number.isFinite(amount) || amount <= 0)
@@ -44,21 +44,30 @@ export async function payNowAndRecord(
     const payload = {
       billingKey,
       orderName,
-      amount, 
-      currency, 
+      amount: { total: amount },
+      currency,
     };
 
     const { data, status } = await axios.post(url, payload, { headers });
-    if (status < 200 || status >= 300) {
-      throw new Error(`PortOne 결제 실패 status=${status}`);
-    }
 
     // PortOne 응답에서 식별자/영수증 URL 추출(필드명 변동 대비 안전하게)
-    const portoneTxId = data.payment.pgTxId
+    const portoneTxId = data.payment.pgTxId;
 
     // user_id 확보
     let userId: number | null =
       Number(res.locals.subscription?.user_id) || null;
+
+    if (status < 200 || status >= 300) {
+      // 성공 결제 히스토리 저장 (idempotent)
+      await process._myApp.db.promise().query(
+        `INSERT INTO payments
+           (user_id, subscription_id, payment_id, is_success, order_name, amount_krw, currency,  paid_at, created_at)
+         VALUES
+           (?,       ?,               ?,          ?,             ?,          ?,          ?,         NOW(),  NOW())`,
+           [userId,  subscriptionId,  paymentId,   0,            orderName,  amount,     currency]
+      );
+      throw new Error(`PortOne 결제 실패 status=${status}`);
+    }
 
     if (!userId && subscriptionId) {
       const [[row]]: any = await process._myApp.db
@@ -77,10 +86,7 @@ export async function payNowAndRecord(
          VALUES
            (?,       ?,               ?,          ?,             ?,          ?,          ?,         NOW(),  NOW())
          ON DUPLICATE KEY UPDATE
-           portone_tx_id = VALUES(portone_tx_id),
-           receipt_url   = VALUES(receipt_url),
-           paid_at       = NOW(),
-           updated_at    = NOW()`,
+           portone_tx_id = VALUES(portone_tx_id)`,
       [
         userId,
         subscriptionId,
@@ -97,7 +103,7 @@ export async function payNowAndRecord(
       paymentId,
       portoneTxId,
       amount,
-      currency,      
+      currency,
       userId,
       subscriptionId,
     };
