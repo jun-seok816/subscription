@@ -68,8 +68,12 @@ export class SubscriptionStore {
       const { data } = await axios.post(`/feature/${slug}`);
       const { msg, cost } = data;
       if (this.state.user?.token_balance) {
-        this.state.user.token_balance -= cost;
-        this.im_forceRender();
+        
+        if(this.state.user.token_balance > cost){
+          this.state.user.token_balance -= cost;
+          this.im_forceRender();
+        }
+        
       }
       Main.im_toast(msg, "success");
     } catch (e) {

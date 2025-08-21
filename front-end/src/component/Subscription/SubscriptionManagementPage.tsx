@@ -30,7 +30,7 @@ export default function SubscriptionManagementPage(props: {
                 <th>다음 결제일</th>
                 <td>
                   {lv_sub && lv_sub.current_period_end
-                    ? format(lv_sub.current_period_end, "yyyy-MM-dd")
+                    ? format(lv_sub.current_period_end, "yyyy-MM-dd HH:MM:SS")
                     : "다음 결제일 없음"}
                 </td>
               </tr>
