@@ -7,6 +7,7 @@
   "author": "hdr",
   "license": "ISC",
   "dependencies": {
+    "@portone/server-sdk": "^0.15.0",
     "axios": "^1.10.0",
     "body-parser": "^1.20.3",
     "bullmq": "^5.58.0",

@@ -189,9 +189,8 @@ export const rollToNextPeriod: RequestHandler = async (req, res, next) => {
       res.status(404).json({ err: true, msg: "구독 정보를 찾을 수 없습니다." });
       return;
     }
-
-    // 2) 아직 기간이 끝나지 않았는데 force 옵션이 없으면 막기
-    if (sub.current_period_end > new Date() && !req.body.force) {
+    
+    if (sub.current_period_end > new Date() ) {
       await conn.rollback();
       res.status(400).json({
         err: true,

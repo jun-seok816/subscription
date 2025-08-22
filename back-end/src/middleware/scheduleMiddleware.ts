@@ -1,24 +1,12 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { computeNextAt, formatDateTime } from "../all_Store";
 
 // ---------------------- 설정 ----------------------
 const PORTONE_API_SECRET = process.env.PORTONE_API_SECRET!; // imp_secret
 
-// ---------------------- 공용 유틸 ----------------------
-function formatDateTime(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
-    d.getHours()
-  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
 
-function computeNextAt(currentPeriodEnd: Date | null): Date {
-  if (currentPeriodEnd) return new Date(currentPeriodEnd);
-  const d = new Date();
-  d.setMinutes(d.getMinutes() + 1);
-  return d;
-}
 
 // ---------------------- 미들웨어 본체 ----------------------
 export const scheduleNext: RequestHandler = async (

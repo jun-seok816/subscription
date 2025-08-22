@@ -20,3 +20,18 @@ export function fmt(dt?: string | Date | null) {
   const ss = pad(d.getSeconds());
   return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
 }
+
+// ---------------------- 공용 유틸 ----------------------
+export function formatDateTime(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
+    d.getHours()
+  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+export function computeNextAt(currentPeriodEnd: Date | null): Date {
+  if (currentPeriodEnd) return new Date(currentPeriodEnd);
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + 1);
+  return d;
+}
