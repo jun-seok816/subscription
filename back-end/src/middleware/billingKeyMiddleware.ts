@@ -114,44 +114,6 @@ export async function payNowAndRecord(
   }
 }
 
-/**결제 스케줄 삭제 */
-export async function cancelPortoneSchedules(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const subscriptionId = Number(res.locals.subscription?.id);
-    const BILLING_KEY = res.locals?.user?.portone_billing_key;
-
-    if (!subscriptionId) throw new Error("subscriptionId 필요");
-    if (!BILLING_KEY) throw new Error("billingKey 필요");
-
-    // DB 상태 취소로 마킹
-    await process._myApp.db.promise().query(
-      `UPDATE subscription_schedules
-           SET status = 'CANCELLED',
-           cancelled_at = NOW()
-         WHERE subscription_id = ?`,
-      [subscriptionId]
-    );
-
-    // PortOne 예약 일괄 취소
-    const headers = {
-      Authorization: `PortOne ${process.env.PORTONE_API_SECRET}`,
-      "Content-Type": "application/json",
-    };
-    await axios.delete("https://api.portone.io/payment-schedules", {
-      headers,
-      data: { billingKey: BILLING_KEY },
-    });
-
-    next();
-  } catch (err) {
-    next(err);
-  }
-}
-
 /** 빌링키 등록(생성) */
 export async function createBillingKey(
   req: Request,

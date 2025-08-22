@@ -51,7 +51,7 @@ $secondary: #1e1e3c; // 짙은 남보라 (배경)
 
   /* 현재 구독 섹션 */
   &__current {
-    h2 {
+    .title {
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }

@@ -3,6 +3,8 @@ import { Subscription } from "./Main";
 import "./SubscriptionManagementPage.scss";
 import { format } from "date-fns";
 import { PLAN_ITEMS } from "@BackEnd/src/all_Types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import Card from "./Card";
 
 export default function SubscriptionManagementPage(props: {
@@ -14,7 +16,7 @@ export default function SubscriptionManagementPage(props: {
   return (
     <div className="sub-dashboard">
       <section className="sub-dashboard__current">
-        <h2>사용자 정보</h2>
+        <h2 className="title">사용자 정보</h2>
         <div className="table-div">
           <table className="current-table">
             <tbody>
@@ -27,11 +29,48 @@ export default function SubscriptionManagementPage(props: {
                 <td>{lv_sub?.plan_name}</td>
               </tr>
               <tr>
-                <th>다음 결제일</th>
+                <th>다음 결제일 변경</th>
                 <td>
-                  {lv_sub && lv_sub.current_period_end
-                    ? format(lv_sub.current_period_end, "yyyy-MM-dd HH:MM:SS")
-                    : "다음 결제일 없음"}
+                  {lv_sub && (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <DatePicker
+                        selected={lv_sub && new Date(lv_sub.current_period_end)}
+                        onChange={(d) => {
+                          if (
+                            window.confirm("다음 결제일을 변경하시겠습니까?")
+                          ) {
+                            if (lv_sub && d) lv_sub.current_period_end = d;
+                            props.lv_Obj.pt_SubscriptionStore.periodChange();
+                          }
+                        }}
+                        showTimeSelect
+                        timeFormat="HH:mm:ss"
+                        timeIntervals={1} // 1분 간격
+                        dateFormat="yyyy-MM-dd HH:mm:ss"
+                        placeholderText="다음 결제일 변경"
+                      />
+
+                      <button
+                        type="button"
+                        className="btn__red"
+                        onClick={() => {
+                          if (
+                            window.confirm("다음 결제일을 1분뒤로 변경하시겠습니까?")
+                          ) {
+                            const cur = new Date();
+                            const next = new Date(cur.getTime() + 60 * 1000); // +1분
+                            lv_sub.current_period_end = next;
+                            props.lv_Obj.pt_SubscriptionStore.periodChange();
+                          }
+                        }}
+                        style={{ padding: "6px 10px", cursor: "pointer" }}
+                      >
+                        1분뒤
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
 

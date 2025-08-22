@@ -87,6 +87,25 @@ export class SubscriptionStore {
       }
     }
   }
+
+  public async periodChange(){
+    try {
+      await axios.post<SubscriptionRow>(
+        "/subscription/periodChange",
+        { changeDateTime: this.subscription?.current_period_end }
+      );
+      this.load();
+      
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response) {
+        const { err, msg } = e.response.data;
+        Main.im_toast(msg, "error");
+      } else {
+        console.error(e);
+        Main.im_toast("네트워크 오류가 발생했습니다.", "error");
+      }
+    }
+  }
   
   public async load(): Promise<void> {
     try {
