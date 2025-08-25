@@ -165,7 +165,6 @@ export async function createBillingKey(
     }
     const user = rows[0];
 
-    // 우선순위: 기존 DB값 > req.body.customerId > PortOne 응답 customer.id
     const resolvedCustomerId =
       user.portone_customer_id ?? customerId ?? parsed.customerId ?? null;
 
@@ -182,7 +181,7 @@ export async function createBillingKey(
           WHERE id = ?`,
       [
         resolvedCustomerId,
-        parsed.billingKey, // <- 그대로 저장(로그/응답에는 노출 금지 권장)
+        parsed.billingKey, 
         parsed.cardBrand,
         parsed.cardLast4,
         parsed.easyPayProvider ?? parsed.provider ?? null,
@@ -191,8 +190,7 @@ export async function createBillingKey(
     );
 
     await conn.commit();
-
-    // 3) 성공 응답 (민감정보 최소화)
+    
     res.locals.billingCreate = {
       userId: user.id,
       billingKey: parsed.billingKey,
@@ -242,7 +240,7 @@ export async function deleteBillingKey(
       return;
     }
 
-    // 1) 포트원 측 빌링키 삭제 (idempotent 처리: 404면 이미 삭제된 것으로 간주)
+    // 1) 포트원 측 빌링키 삭제 
     try {
       await axios.delete(
         `https://api.portone.io/billing-keys/${encodeURIComponent(billingKey)}`,
@@ -264,11 +262,10 @@ export async function deleteBillingKey(
           data: e.response?.data ?? null,
         });
         return;
-      }
-      // 404: 이미 삭제된 상태 → 로컬만 정리 계속 진행
+      }      
     }
 
-    // 2) 로컬 DB 정리 (결제정보 초기화 + 상태 REVOKED)
+    // 2) 로컬 DB 정리 
     await conn.execute(
       `UPDATE subscription.users
               SET portone_billing_key   = NULL,
@@ -332,7 +329,6 @@ function parseBillingKeyInfo(info: BillingKeyResponse) {
   const provider =
     info.channels?.[0]?.pgProvider ?? info.channels?.[0]?.name ?? null;
 
-  // 있을 때만 카드 정보
   const cardBrand = isCard
     ? inner?.card?.brand ||
       inner?.card?.issuer ||
@@ -346,8 +342,7 @@ function parseBillingKeyInfo(info: BillingKeyResponse) {
       ? inner.card.maskedNumber.slice(-4)
       : null
     : null;
-
-  // 있을 때만 간편결제 제공사
+  
   const easyPayProvider = isEasyPay
     ? inner?.easyPay?.provider ?? provider ?? null
     : null;

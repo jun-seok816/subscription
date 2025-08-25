@@ -11,7 +11,6 @@ import {
   cancelPortoneSchedules,
 } from "../middleware/scheduleMiddleware";
 import { payNowAndRecord } from "../middleware/billingKeyMiddleware";
-import { nextTick } from "process";
 const router = express.Router();
 
 router.post(
