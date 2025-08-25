@@ -68,6 +68,70 @@ router.post("/portone", async (req, res) => {
   }
 });
 
+export async function onScheduleFailed(
+  conn: PoolConnection,
+  paymentId: string,
+) {
+  // 1) 스케줄 조회(+잠금) → 금액/상품명/구독ID 확보
+  const [sRows] = await conn.query<RowDataPacket[]>(
+    `SELECT subscription_id, amount_krw, product_name, status
+       FROM subscription_schedules
+      WHERE payment_id = ?
+      FOR UPDATE`,
+    [paymentId]
+  );
+  if (sRows.length === 0) {
+    // 알 수 없는 paymentId면 그냥 종료(로그만)
+    return;
+  }
+  const sch = sRows[0] as {
+    subscription_id: number;
+    amount_krw: number;
+    product_name: string;
+    status: "SCHEDULED" | "EXECUTED" | "CANCELLED";
+  };
+
+  // 2) 구독 → user_id 확보
+  const [subRows] = await conn.query<RowDataPacket[]>(
+    `SELECT id, user_id FROM subscriptions WHERE id = ?`,
+    [sch.subscription_id]
+  );
+
+  const { id: subscriptionId, user_id: userId } = subRows[0] as {
+    id: number;
+    user_id: number;
+  };
+
+  // 3) 스케줄 상태 업데이트(멱등)
+  if (sch.status === "SCHEDULED") {
+    await conn.query(
+      `UPDATE subscription_schedules
+          SET status='CANCELLED', cancelled_at=NOW()
+        WHERE payment_id=? AND status='SCHEDULED'`,
+      [paymentId]
+    );
+  }
+
+  // 4) payments 실패 기록(멱등: payment_id UNIQUE)  
+  const paidAt = formatDateTime(new Date());
+  const orderName = "정기결제(실패)";
+  await conn.query(
+    `INSERT INTO payments
+       (user_id, subscription_id, payment_id, portone_tx_id, order_name,
+        amount_krw, currency, is_success, paid_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'KRW', 0, ?, NOW())`,
+    [
+      userId,
+      subscriptionId,
+      paymentId,
+      null,
+      orderName,
+      sch.amount_krw,
+      paidAt,
+    ]
+  );  
+}
+
 export async function commitCycleAndGrantTokens(
   conn: PoolConnection,
   paymentId: string
