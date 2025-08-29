@@ -35,3 +35,16 @@ export function computeNextAt(currentPeriodEnd: Date | null): Date {
   d.setMinutes(d.getMinutes() + 1);
   return d;
 }
+
+export function toMySQLDateTimeUTC(input?: string | Date) {
+  const d = input ? new Date(input) : new Date();
+  if (Number.isNaN(d.getTime())) throw new Error('INVALID_DATE');
+  const pad = (n: number, w = 2) => String(n).padStart(w, '0');  
+  const Y = d.getUTCFullYear();
+  const M = pad(d.getUTCMonth() + 1);
+  const D = pad(d.getUTCDate());
+  const h = pad(d.getUTCHours());
+  const m = pad(d.getUTCMinutes());
+  const s = pad(d.getUTCSeconds());  
+  return `${Y}-${M}-${D} ${h}:${m}:${s}`; 
+}

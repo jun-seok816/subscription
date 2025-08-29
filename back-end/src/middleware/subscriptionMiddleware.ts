@@ -35,7 +35,7 @@ export const loadSubscription: RequestHandler = async (req, res, next) => {
     const [payments] = await process._myApp.db
       .promise()
       .query<RowDataPacket[]>(
-        "SELECT payment_id,order_name,is_success,amount_krw,paid_at FROM payments WHERE user_id = ? ",
+        "SELECT payment_id,order_name,is_success,amount_krw,paid_at FROM payments WHERE user_id = ? ORDER BY paid_at DESC ",
         [userId]
       );
 

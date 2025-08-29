@@ -31,9 +31,6 @@ process._myApp = {
 //https://expressjs.com/ko/starter/static-files.html s
 app.set("puplic", path_1.default.join(__dirname, "../build"));
 app.use(express_1.default.static(app.settings.puplic));
-//https://www.npmjs.com/package/body-parser
-app.use(body_parser_1.default.json({ limit: "100mb" }));
-app.use(body_parser_1.default.urlencoded({ limit: "100mb", extended: false }));
 app.use((0, cookie_parser_1.default)());
 var sessionStore = new MySQLStore(lv_Db.pt_Data.DB);
 const sessionMiddleware = (0, express_session_1.default)({
@@ -53,16 +50,19 @@ express_1.default.static(path_1.default.join(__dirname, "../assets")));
 app.use(express_1.default.static(path_1.default.join(__dirname, "../build"), {
     index: false, // index.html 은 직접 라우트에서 전송
 }));
+const portoneWebhook_1 = __importDefault(require("./router/portoneWebhook"));
+app.use("/pw", portoneWebhook_1.default);
+//https://www.npmjs.com/package/body-parser
+app.use(body_parser_1.default.json({ limit: "100mb" }));
+app.use(body_parser_1.default.urlencoded({ limit: "100mb", extended: false }));
+const featureRouter_1 = require("./router/featureRouter");
+app.use((0, featureRouter_1.featureRouter)());
 const subscriptionRouter_1 = __importDefault(require("./router/subscriptionRouter"));
 app.use("/subscription", subscriptionRouter_1.default);
 const loginRouter_1 = __importDefault(require("./router/loginRouter"));
 app.use("/login", loginRouter_1.default);
 const paymentRouter_1 = __importDefault(require("./router/paymentRouter"));
 app.use("/pay", paymentRouter_1.default);
-const portoneWebhook_1 = __importDefault(require("./router/portoneWebhook"));
-app.use("/pw", portoneWebhook_1.default);
-const featureRouter_1 = require("./router/featureRouter");
-app.use((0, featureRouter_1.featureRouter)());
 app.use((err, req, res, next) => {
     // 이미 헤더가 전송됐다면 Express 기본 처리에 맡김
     if (res.headersSent) {

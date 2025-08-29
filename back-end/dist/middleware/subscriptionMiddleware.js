@@ -17,7 +17,7 @@ const loadSubscription = async (req, res, next) => {
             .query("SELECT * FROM subscription_schedules WHERE subscription_id = ? ORDER BY created_at DESC", [res.locals.subscription.id]);
         const [payments] = await process._myApp.db
             .promise()
-            .query("SELECT payment_id,order_name,is_success,amount_krw,paid_at FROM payments WHERE user_id = ? ", [userId]);
+            .query("SELECT payment_id,order_name,is_success,amount_krw,paid_at FROM payments WHERE user_id = ? ORDER BY paid_at DESC ", [userId]);
         res.locals.subscription_schedules = subscription_schedules ?? null;
         res.locals.payments = payments ?? null;
         res.locals.user = user[0] ?? null;

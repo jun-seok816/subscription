@@ -55,9 +55,6 @@ process._myApp = {
 //https://expressjs.com/ko/starter/static-files.html s
 app.set("puplic", path.join(__dirname, "../build"));
 app.use(express.static(app.settings.puplic));
-//https://www.npmjs.com/package/body-parser
-app.use(bodyParser.json({ limit: "100mb" }));
-app.use(bodyParser.urlencoded({ limit: "100mb", extended: false }));
 
 app.use(cookieParser());
 var sessionStore = new MySQLStore(lv_Db.pt_Data.DB);
@@ -86,16 +83,24 @@ app.use(
   })
 );
 
+
+import pw from "./router/portoneWebhook";
+app.use("/pw", pw);
+
+//https://www.npmjs.com/package/body-parser
+app.use(bodyParser.json({ limit: "100mb" }));
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: false }));
+import {featureRouter}  from "./router/featureRouter";
+app.use(featureRouter());
 import subscription from "./router/subscriptionRouter";
 app.use("/subscription", subscription);
 import login from "./router/loginRouter";
 app.use("/login", login);
 import pay from "./router/paymentRouter";
 app.use("/pay", pay);
-import pw from "./router/portoneWebhook";
-app.use("/pw", pw);
-import {featureRouter}  from "./router/featureRouter";
-app.use(featureRouter());
+
+
+
 
 app.use((err: any, req: any, res: any, next: any) => {
   // 이미 헤더가 전송됐다면 Express 기본 처리에 맡김

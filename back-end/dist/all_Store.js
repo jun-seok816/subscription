@@ -4,6 +4,7 @@ exports.toSlug = void 0;
 exports.fmt = fmt;
 exports.formatDateTime = formatDateTime;
 exports.computeNextAt = computeNextAt;
+exports.toMySQLDateTimeUTC = toMySQLDateTimeUTC;
 const toSlug = (s) => s
     .toLowerCase()
     .replace(/\s+/g, "-")
@@ -37,5 +38,18 @@ function computeNextAt(currentPeriodEnd) {
     const d = new Date();
     d.setMinutes(d.getMinutes() + 1);
     return d;
+}
+function toMySQLDateTimeUTC(input) {
+    const d = input ? new Date(input) : new Date();
+    if (Number.isNaN(d.getTime()))
+        throw new Error('INVALID_DATE');
+    const pad = (n, w = 2) => String(n).padStart(w, '0');
+    const Y = d.getUTCFullYear();
+    const M = pad(d.getUTCMonth() + 1);
+    const D = pad(d.getUTCDate());
+    const h = pad(d.getUTCHours());
+    const m = pad(d.getUTCMinutes());
+    const s = pad(d.getUTCSeconds());
+    return `${Y}-${M}-${D} ${h}:${m}:${s}`;
 }
 //# sourceMappingURL=all_Store.js.map
