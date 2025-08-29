@@ -13,9 +13,16 @@ router.use("/portone", bodyParser.text({ type: "application/json" }));
 
 router.post("/portone", async (req, res) => {
   try {
+    // ★ 여기서 반드시 string으로
+    const payload = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (req.body as string);
+
+    // 디버그
+    console.log('[portone] typeof req.body:', typeof req.body, 'isBuffer:', Buffer.isBuffer(req.body));
+    console.log('[portone] typeof payload:', typeof payload);
+
     const evt = await Webhook.verify(
       process.env.PORTONE_WEBHOOK_SECRET!,
-      req.body,
+      `${payload}`,
       req.headers
     );
 

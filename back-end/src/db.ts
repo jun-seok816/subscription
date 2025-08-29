@@ -21,14 +21,14 @@ export default class Db {
   constructor() {
     this.iv_Data = {      
       DB: {
-        host: "localhost",
-        port: 3309,
+        host: "127.0.0.1",
+        port: 3306,
         user: "root",
         password: "loutbtbahah4281!",
         database: "subscription",        
         charset:"utf8mb4"
       },  
-      port: 3000,
+      port: 3002,
     };
 
   }
