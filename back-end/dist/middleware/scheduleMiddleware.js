@@ -88,7 +88,7 @@ async function cancelPortoneSchedules(req, res, next) {
         await process._myApp.db.promise().query(`UPDATE subscription_schedules
            SET status = 'CANCELLED',
            cancelled_at = NOW()
-         WHERE subscription_id = ?`, [subscriptionId]);
+         WHERE subscription_id = ? AND status = 'SCHEDULED'`, [subscriptionId]);
         // PortOne 예약 일괄 취소
         const headers = {
             Authorization: `PortOne ${process.env.PORTONE_API_SECRET}`,

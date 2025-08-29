@@ -119,7 +119,7 @@ export async function cancelPortoneSchedules(
       `UPDATE subscription_schedules
            SET status = 'CANCELLED',
            cancelled_at = NOW()
-         WHERE subscription_id = ?`,
+         WHERE subscription_id = ? AND status = 'SCHEDULED'`,
       [subscriptionId]
     );
 
