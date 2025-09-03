@@ -2,6 +2,7 @@ import axios from "axios";
 import * as PortOne from "@portone/browser-sdk/v2";
 import { Main } from "./Main_class";
 import { v4 } from "uuid";
+import { uniqueId } from "lodash";
 
 const STORE_ID = "store-1bf4f4b6-f07e-4415-8d81-1fca605c699f";
 const PORTONE_API_SECRET = "channel-key-ce371e74-f728-4b88-92c1-6374ba1dd8b5";
@@ -9,7 +10,7 @@ const PORTONE_API_SECRET = "channel-key-ce371e74-f728-4b88-92c1-6374ba1dd8b5";
 export class Payment {
   async im_handlePayment(): Promise<boolean> {
     try {
-      const paymentId = `payment_${crypto.randomUUID()}`;
+      const paymentId = `payment_${uniqueId()}`;
       const response = await PortOne.requestPayment({
         storeId: STORE_ID,
         channelKey: PORTONE_API_SECRET,
@@ -66,7 +67,7 @@ export class Payment {
         storeId: STORE_ID,
         channelKey: PORTONE_API_SECRET,
         billingKeyMethod: "EASY_PAY", // 카드 결제창
-        issueId: `issue_${crypto.randomUUID()}`,
+        issueId: `issue_${uniqueId()}`,
         issueName: "정기구독 카드등록",
         customer: { customerId: customerId, email: userEmail },
       });
