@@ -12,30 +12,11 @@ declare global {
   }
 }
 
-class LoginComponentClass extends Main {
-  private iv_login: Login;
 
-  public get pt_login(): Login {
-    return this.iv_login;
-  }
 
-  constructor() {
-    super();
-    this.iv_login = new Login(this.im_forceRender.bind(this));
-  }
-}
-
-export default function LoginModal() {
-  const [lv_Obj] = useState(() => {
-    return new LoginComponentClass();
-  });
-
-  lv_Obj.im_Prepare_Hooks(async () => {
-    window.globalCallback_login = () => {
-      window.location.reload();
-    };
-    lv_Obj.pt_login.im_Session();    
-  });
+export default function LoginModal(props:{lv_Obj:Login}) {
+  
+  const lv_Obj = props.lv_Obj;
 
   const customStyles = {
     content: {
@@ -52,9 +33,9 @@ export default function LoginModal() {
 
   return (
     <Modal
-      isOpen={lv_Obj.pt_login.iv_modal}
+      isOpen={lv_Obj.iv_modal}
       onRequestClose={() => {
-        lv_Obj.pt_login.iv_modal = false;
+        lv_Obj.iv_modal = false;
         lv_Obj.im_forceRender();
       }}
       shouldCloseOnOverlayClick={false}
@@ -68,8 +49,8 @@ export default function LoginModal() {
   );
 }
 
-function Login_tag(props: { lv_Obj: LoginComponentClass }) {
-  const lv_login = props.lv_Obj.pt_login;
+function Login_tag(props: { lv_Obj: Login }) {
+  const lv_login = props.lv_Obj;
   return (
     <>
       <div style={{ fontSize: "26px" }}>

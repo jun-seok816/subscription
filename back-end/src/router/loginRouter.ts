@@ -57,6 +57,36 @@ const router = express.Router();
 });
 
 
+router.post("/logout", (req: Request, res: Response) => {
+  // 세션 쿠키 이름(기본: connect.sid). 미들웨어에서 name을 바꿨다면 동일하게 맞추세요.
+  const cookieName = process.env.SESSION_NAME || "connect.sid";
+  const cookiePath = (req.session as any)?.cookie?.path || "/";
+  
+  if (!req.session) {
+    res.clearCookie(cookieName, { path: cookiePath, httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
+    res.json({ err: false, loggedOut: true });
+    return 
+  }
+
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Session destroy error:", err);
+      return res.status(500).json({ err: true, msg: "session destroy failed" });
+    }
+
+    // 브라우저에서 세션 쿠키 삭제
+    res.clearCookie(cookieName, {
+      path: cookiePath,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return res.json({ err: false, loggedOut: true });
+  });
+});
+
+
 router.get("/loginSession", (req, res) => {
   console.log(`session Data user_id: %o`, req.session.userId);
   if (req.session.userId) {

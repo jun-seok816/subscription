@@ -3,9 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.payNowAndRecord = payNowAndRecord;
-exports.createBillingKey = createBillingKey;
-exports.deleteBillingKey = deleteBillingKey;
+exports.deleteBillingKey = exports.createBillingKey = exports.payNowAndRecord = void 0;
 const axios_1 = __importDefault(require("axios"));
 const uuid_1 = require("uuid");
 /**결제 AND 기록 */
@@ -94,6 +92,7 @@ async function payNowAndRecord(req, res, next) {
         next(err);
     }
 }
+exports.payNowAndRecord = payNowAndRecord;
 /** 빌링키 등록(생성) */
 async function createBillingKey(req, res, next) {
     const { billingKey, userEmail, customerId } = req.body;
@@ -165,6 +164,7 @@ async function createBillingKey(req, res, next) {
         conn.release();
     }
 }
+exports.createBillingKey = createBillingKey;
 /** 빌링키 삭제 */
 async function deleteBillingKey(req, res, next) {
     const conn = await process._myApp.db.promise().getConnection();
@@ -243,6 +243,7 @@ async function deleteBillingKey(req, res, next) {
         conn.release();
     }
 }
+exports.deleteBillingKey = deleteBillingKey;
 function parseBillingKeyInfo(info) {
     const methodEntry = info.methods?.[0];
     const inner = methodEntry?.method;
@@ -270,7 +271,7 @@ function parseBillingKeyInfo(info) {
         status: info.status,
         billingKey: info.billingKey,
         customerId: info.customer?.id ?? null,
-        provider, // 예: 'KAKAOPAY'
+        provider,
         methodType,
         cardBrand,
         cardLast4,

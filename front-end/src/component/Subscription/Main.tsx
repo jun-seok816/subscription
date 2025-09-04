@@ -7,11 +7,15 @@ import LoginModal from "../Login/LoginModal";
 import { Payment } from "@jsLib/class/Payment";
 import ScheduleModal from "./SubscriptionSchedulesTable";
 import PaymentModal from "./PaymentTable";
+import { Login } from "@jsLib/class/Login";
 
 export class Subscription extends Main {
   private iv_SubscriptionStore = new SubscriptionStore(
     this.im_forceRender.bind(this)
   );
+
+  private iv_Login = new Login(this.im_forceRender.bind(this));
+
   private iv_Payement = new Payment();
   public iv_loading = false;
   public iv_schedule = false;
@@ -28,6 +32,10 @@ export class Subscription extends Main {
   get pt_Payment() {
     return this.iv_Payement;
   }
+
+  public get pt_login(): Login {
+    return this.iv_Login;
+  }
 }
 
 export default function MainComponent() {
@@ -35,13 +43,17 @@ export default function MainComponent() {
     return new Subscription();
   });
 
-  lv_Obj.im_Prepare_Hooks(() => {
-    lv_Obj.pt_SubscriptionStore.load();
+  lv_Obj.im_Prepare_Hooks(async () => {
+    window.globalCallback_login = () => {
+      window.location.reload();
+    };
+    await lv_Obj.pt_login.im_Session();    
+    await lv_Obj.pt_SubscriptionStore.load();
   });
 
   return (
     <>
-      <LoginModal />
+      <LoginModal lv_Obj={lv_Obj.pt_login}/>
       <ScheduleModal lv_Obj={lv_Obj} />
       <PaymentModal lv_Obj={lv_Obj} />
       <div style={{ display: "flex", height: "100%" }}>

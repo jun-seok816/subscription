@@ -5,6 +5,8 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { Main } from "@jsLib/class/Main_class";
 
 export default function SideBar(props: { lv_Obj: Subscription }) {
+  const lv_user = props.lv_Obj.pt_SubscriptionStore.user;
+  const lv_login = props.lv_Obj.pt_login;
   return (
     <aside className="sidebar" id="jueo34oiuhowd8">
       <div style={{ color: "white", marginBottom: "1em", marginLeft: "1em" }}>
@@ -17,22 +19,49 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
         <div className="nptubnbowbpeih27">
           <nav className="sidebar__section">
             <span className="sidebar__title">결제 기록</span>
-            <span className="sidebar__item" onClick={()=>{
-              props.lv_Obj.iv_schedule = true;
-              props.lv_Obj.im_forceRender();
-            }}>              
+            <span
+              className="sidebar__item"
+              onClick={() => {
+                props.lv_Obj.iv_schedule = true;
+                props.lv_Obj.im_forceRender();
+              }}
+            >
               <span className="sidebar__label">구독 스케쥴</span>
-              <div className="sidebar__badge">+{props.lv_Obj.pt_SubscriptionStore.schedule?.length}</div>
+              <div className="sidebar__badge">
+                +{props.lv_Obj.pt_SubscriptionStore.schedule?.length}
+              </div>
             </span>
-            <span className="sidebar__item" onClick={()=>{
-              props.lv_Obj.iv_payments = true;
-              props.lv_Obj.im_forceRender();
-            }}>              
+            <span
+              className="sidebar__item"
+              onClick={() => {
+                props.lv_Obj.iv_payments = true;
+                props.lv_Obj.im_forceRender();
+              }}
+            >
               <span className="sidebar__label">청구서 내역</span>
-              <div className="sidebar__badge">+{props.lv_Obj.pt_SubscriptionStore.payments?.length}</div>
+              <div className="sidebar__badge">
+                +{props.lv_Obj.pt_SubscriptionStore.payments?.length}
+              </div>
             </span>
           </nav>
         </div>
+
+        <nav className="sidebar__section">
+          <span className="sidebar__title">계정</span>
+
+          <button
+            type="button"
+            className="sidebar__item sidebar__item--danger"
+            onClick={()=>{
+              lv_login.im_Logout();
+            }}
+            disabled={lv_user === null}            
+          >
+            <span className="sidebar__label">
+              {lv_user===null ? "로그아웃 중..." : "로그아웃"}
+            </span>
+          </button>
+        </nav>
       </div>
     </aside>
   );

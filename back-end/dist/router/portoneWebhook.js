@@ -3,9 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onScheduleFailed = onScheduleFailed;
-exports.commitCycleAndGrantTokens = commitCycleAndGrantTokens;
-exports.onPaymentSucceeded = onPaymentSucceeded;
+exports.onPaymentSucceeded = exports.commitCycleAndGrantTokens = exports.onScheduleFailed = void 0;
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const server_sdk_1 = require("@portone/server-sdk");
@@ -85,7 +83,7 @@ router.post("/portone", body_parser_1.default.text({ type: "*/*" }), async (req,
                 console.log(`[portone][${rid}] tx begin`);
                 if (payment.status === "PAID") {
                     await onPaymentSucceeded(conn, paymentId, {
-                        portoneTxId: payment.id, // 필드명 다르면 null로 둬도 됨            
+                        portoneTxId: payment.id,
                         rid
                     });
                     console.log(`[portone][${rid}] commitCycleAndGrantTokens start`);
@@ -166,6 +164,7 @@ async function onScheduleFailed(conn, paymentId, rid) {
      VALUES (?, ?, ?, ?, ?, ?, 'KRW', 0, ?, NOW())`, [userId, subscriptionId, paymentId, null, orderName, sch.amount_krw, paidAt]);
     console.log(`[portone][${rid}] payments INSERT result=`, ins);
 }
+exports.onScheduleFailed = onScheduleFailed;
 /** 성공 플로우 */
 async function commitCycleAndGrantTokens(conn, paymentId, rid) {
     console.log(`[portone][${rid}] commitCycle paymentId=${paymentId}`);
@@ -266,6 +265,7 @@ async function commitCycleAndGrantTokens(conn, paymentId, rid) {
         product_name=VALUES(product_name)`, [PAYMENT_ID_NEXT, subscriptionId, (0, all_Store_1.formatDateTime)(nextEnd), price, nextPlan]);
     console.log(`[portone][${rid}] schedule INSERT result=`, ins);
 }
+exports.commitCycleAndGrantTokens = commitCycleAndGrantTokens;
 async function onPaymentSucceeded(conn, paymentId, opts) {
     const rid = opts?.rid ?? "";
     // 1) 스케줄 잠금 조회 → 금액/상품명/구독ID 확보
@@ -300,5 +300,6 @@ async function onPaymentSucceeded(conn, paymentId, opts) {
      VALUES (?, ?, ?, ?, ?, ?, 'KRW', 1, NOW(), NOW())`, [userId, subscriptionId, paymentId, portoneTxId, orderName, sch.amount_krw]);
     console.log(`[portone][${rid}] payments INSERT(success) =`, ins_pay);
 }
+exports.onPaymentSucceeded = onPaymentSucceeded;
 exports.default = router;
 //# sourceMappingURL=portoneWebhook.js.map

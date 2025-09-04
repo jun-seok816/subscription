@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.featureRouter = featureRouter;
+exports.featureRouter = void 0;
 const all_Store_1 = require("../all_Store");
 const express_1 = require("express");
 const all_Types_1 = require("../all_Types");
@@ -40,4 +40,5 @@ function featureRouter() {
     }
     return router;
 }
+exports.featureRouter = featureRouter;
 //# sourceMappingURL=featureRouter.js.map
