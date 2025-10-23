@@ -1,106 +1,139 @@
-# Waveform Region Render Optimizer (포트폴리오 데모)
+# 구독/결제 데모 프로젝트
 
-> **WaveForm** 클래스의 `updateVisibleRegions()` 메서드를 활용해  
-> **대량 Region 렌더링 성능을 획기적으로 개선**한 샘플 프로젝트입니다.
-
----
-
-## 1. 프로젝트 개요
-
-| 구분 | 내용 |
-| --- | --- |
-| **목적** | 오디오 편집기에서 다수 Region(자막 구간) 렌더링 시 발생하던 UI 렉·지연 문제를 해결 |
-| **특징** | “실제로 **화면에 보이는 Region만** 렌더링” 전략 도입 |
-| **스택** | **TypeScript**, Webpack, React, WaveSurfer.js, Lodash/throttle |
-
-> 이 리포지토리는 **실제 서비스(clipSeek)** 중 *Waveform Region* 렌더링 파트를  
-> 보안 이슈를 제거하고 **독립 데모용**으로 재구성한 것입니다.
+간단한 구독 시나리오를 재현한 풀스택 데모입니다.  
+이메일·Google OAuth 로그인, 플랜 변경, 토큰 차감, PortOne 빌링키/정기결제 흐름, 웹훅 처리를 한 프로젝트에서 확인할 수 있습니다.
 
 ---
 
-## 2. 배경 & 문제 상황
+## 기술 스택
 
-- Region 생성/삭제/수정 시 **모든 Region을 재렌더링**  
-- 50개 이상 Region에서 **스크롤·클릭 시 INP 500 ms+**, 체감 버벅임 심화  
-- DevTools Performance 탭 `Scripting` 영역 80 ms 이상 소모
+- **프런트엔드**: React 18, TypeScript, webpack, react-router, react-bootstrap, react-toastify
+- **백엔드**: Node.js(Express), TypeScript, mysql2, express-session, PortOne Server SDK, axios
+- **데이터베이스**: MySQL 8+
+- **기타**: dotenv, uuid, lodash/throttle
 
 ---
 
-## 3. 핵심 개선 포인트
+## 주요 기능
 
-### 📌 `updateVisibleRegions()` 한눈에 보기
-```typescript
-private updateVisibleRegions = () => {
-  if (this.isUpdating) return;              // 드래그 중 중복 호출 방지
-  const RENDER_BUFFER_SEC = 30;             // 앞뒤 30초 버퍼
+- 이메일/Google OAuth 기반 로그인 및 세션 관리
+- 구독 플랜 업그레이드·다운그레이드, 다음 결제일 변경
+- PortOne Billing Key 발급/삭제, 정기 결제 스케줄 생성·취소
+- 결제 성공/실패 웹훅 처리 및 토큰 지급
+- 플랜별 토큰 차감 기능 호출 UI (react-window 기반 리스트)
 
-  // 1) 현재 뷰포트(가시 시간 범위) 계산
-  const { start, end } = this.getVisibleTimeRange();
-  const expandedStart = Math.max(0, start - RENDER_BUFFER_SEC);
-  const expandedEnd   = end + RENDER_BUFFER_SEC;
+---
 
-  // 2) 가시 구간에 속하는 Region만 생성
-  this.iv_region.regionList.forEach((tc, id) => {
-    if (tc.eTime > expandedStart && tc.sTime < expandedEnd) {
-      const inst = this.im_makeRegion(tc);
-      this.visibleRegionInstances.set(id, inst);
-    }
-  });
-};
+## 프로젝트 구조
+
+```
+subscription/
+├── back-end/          # Express + TypeScript API 서버
+│   ├── src/
+│   │   ├── router/    # login, subscription, payment, webhook 라우터
+│   │   ├── middleware/
+│   │   ├── all_Types.ts, all_Store.ts
+│   │   └── web.ts     # 서버 엔트리포인트
+│   ├── dist/          # webpack 번들 산출물
+│   └── package.json
+├── front-end/         # React SPA
+│   ├── src/
+│   │   ├── component/Login
+│   │   ├── component/Subscription
+│   │   └── class/     # 상태/서비스 래퍼
+│   └── package.json
+├── Dump20250821 (1).sql  # DB 스키마 및 샘플 데이터
+└── README.md
 ```
 
-|  | 개선 전 | 개선 후 |
-| --- | --- | --- |
-| **렌더링 범위** | 모든 Region DOM 순회 후 전체 갱신 | **가시 영역 + ±30 s** 범위만 렌더 |
-| **이벤트 처리** | 스크롤·줌마다 재렌더 폭주 | `lodash/throttle(500 ms)`로 폭주 억제 |
-| **Script 실행** | 80 ms | **28 ms (−65 %)** |
-| **INP** | 548 ms | **170 ms (−69 %)** |
-
 ---
 
-## 4. 실행 방법
+## 실행 방법
+
+### 1. MySQL 초기화
 
 ```bash
-git clone https://github.com/jun-seok816/video_slice.git
-cd waveform-region-optimizer
-npm install
-npm start        # http://localhost:3000
+mysql -u root -p
+CREATE DATABASE subscription CHARACTER SET utf8mb4;
+EXIT;
+
+mysql -u root -p subscription < "Dump20250821 (1).sql"
 ```
 
-> **데모 사이트**: https://waveform-demo.vercel.app  
-> (Region 100개 자동 로드 버튼 → 렉 없는 편집 경험 확인)
+트리거가 포함되어 있어 사용자 행 생성 시 자동으로 기본 구독 레코드가 생성됩니다.
+
+### 2. 백엔드
+
+```bash
+cd back-end
+npm install
+cp .env.example .env   # 없으면 직접 생성
+# .env 에 DB/PortOne 환경 변수 입력
+
+npm run start          # ts-node + nodemon (http://localhost:3002)
+```
+
+### 3. 프런트엔드
+
+```bash
+cd front-end
+npm install
+npm run build
+```
 
 ---
 
-## 5. 체험 가이드
+## ERD / 아키텍처
 
-1. **Add 100 Regions** 버튼 클릭  
-2. 마우스 휠로 빠르게 스크롤 & 줌 인/아웃  
-3. DevTools **Performance Insights** → **INP, Scripting** 수치 확인  
-4. Region 드래그 시 `isUpdating` 플래그로 **중복 렌더 차단** 체험
+### 데이터 모델
+
+```
+users (id PK)
+ ├─ email
+ ├─ token_balance
+ ├─ portone_customer_id
+ ├─ portone_billing_key
+ ├─ billing_key_status
+ └─ card_brand / card_last4 ...
+
+subscriptions (id PK)
+ ├─ user_id FK → users.id
+ ├─ plan_name / billing_cycle
+ ├─ price_cents / token_grant
+ ├─ current_period_end
+ ├─ pending_plan_name / pending_billing_cycle
+ └─ cancel_at_period_end
+
+subscription_schedules (payment_id PK)
+ ├─ subscription_id FK → subscriptions.id
+ ├─ schedule_at / executed_at / cancelled_at
+ ├─ amount_krw
+ └─ status / product_name
+
+payments (payment_id UNIQUE)
+ ├─ user_id FK → users.id
+ ├─ subscription_id FK → subscriptions.id
+ ├─ amount_krw / currency
+ ├─ order_name / is_success
+ └─ paid_at / created_at
+```
+
+### 흐름도
+
+```
+[React SPA] --axios--> [Express API] --MySQL--
+     |                         |
+     | PortOne Browser SDK     | PortOne Server SDK (결제 검증/스케줄)
+     └------ PortOne ---------┘
+
+Webhooks:
+PortOne → /pw/portone → (verify) → DB 업데이트 → 토큰 지급/스케줄링
+
+DB Event Scheduler:
+ev_apply_pending_free 이벤트가 정기적으로 `subscriptions` 테이블에서
+`cancel_at_period_end = 1` 또는 `pending_plan_name = 'FREE'` 대상자를 조회해
+무료 플랜으로 일괄 전환합니다. PortOne 정책상 무료 전환 예약에 대한
+웹훅이 제공되지 않아, DB 이벤트로 직접 처리합니다.
+```
 
 ---
-
-## 6. 성능 지표 (Before → After)
-
-| 지표 | 개선 전 | 개선 후 | 개선율 |
-| --- | --- | --- | --- |
-| **INP** | 548 ms | **90 ms** | −90 % |
-| **Script 실행** | 80 ms | **28 ms** | −65 % |
-| **FPS** | 30↓ | **60 고정** | +100 % |
-
----
-
-## 7. 배우고 얻은 점
-
-- **“보이는 것만 그린다”** 원칙이 가장 강력한 프론트엔드 최적화  
-- 이벤트/상태 경합 시 **isUpdating·throttle** 같은 *가드 로직* 필수  
-- DevTools 지표(INP, Scripting)를 활용해 **개선 효과를 수치로 명확히 제시**
-
----
-
-## 8. 라이선스 & 참고
-
-- 본 코드는 clipSeek 내부 기능을 **스터디·포트폴리오 목적**으로 변형해 공개합니다.  
-  상업적 사용은 금지됩니다.  
-- WaveSurfer.js https://wavesurfer.xyz/docs/ © MIT license
