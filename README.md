@@ -1,6 +1,6 @@
 # 구독/결제 데모 프로젝트
 
-이메일·Google OAuth 로그인과 구독 플랜 변경, PortOne 빌링키/정기결제 흐름을 한 번에 확인할 수 있는 풀스택 샘플입니다.
+이메일 Google OAuth 로그인과 구독 플랜 변경, PortOne 빌링키/정기결제 흐름을 한 번에 확인할 수 있는 풀스택 샘플입니다.
 
 ## 폴더 구조
 - `front-end` : React + TypeScript SPA (로그인·플랜 변경 UI)
