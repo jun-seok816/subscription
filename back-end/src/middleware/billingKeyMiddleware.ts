@@ -68,7 +68,7 @@ export async function payNowAndRecord(
       Number(res.locals.subscription?.user_id) || null;
 
     if (status < 200 || status >= 300) {
-      // 성공 결제 히스토리 저장 (idempotent)
+      // 실패 결제 히스토리 저장 (idempotent)
       await process._myApp.db.promise().query(
         `INSERT INTO payments
            (user_id, subscription_id, payment_id, is_success, order_name, amount_krw, currency,  paid_at, created_at)
