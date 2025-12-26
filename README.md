@@ -1,106 +1,38 @@
-# Waveform Region Render Optimizer (포트폴리오 데모)
+# 구독/결제 데모 프로젝트
 
-> **WaveForm** 클래스의 `updateVisibleRegions()` 메서드를 활용해  
-> **대량 Region 렌더링 성능을 획기적으로 개선**한 샘플 프로젝트입니다.
+이메일 Google OAuth 로그인과 구독 플랜 변경, PortOne 빌링키/정기결제 흐름을 한 번에 확인할 수 있는 풀스택 샘플입니다.
 
----
+## 폴더 구조
+- `front-end` : React + TypeScript SPA (로그인·플랜 변경 UI)
+- `back-end` : Express + TypeScript API 서버, PortOne/DB 연동
+- `Dump20250821 (1).sql` : MySQL 스키마 및 샘플 데이터
 
-## 1. 프로젝트 개요
-
-| 구분 | 내용 |
-| --- | --- |
-| **목적** | 오디오 편집기에서 다수 Region(자막 구간) 렌더링 시 발생하던 UI 렉·지연 문제를 해결 |
-| **특징** | “실제로 **화면에 보이는 Region만** 렌더링” 전략 도입 |
-| **스택** | **TypeScript**, Webpack, React, WaveSurfer.js, Lodash/throttle |
-
-> 이 리포지토리는 **실제 서비스(clipSeek)** 중 *Waveform Region* 렌더링 파트를  
-> 보안 이슈를 제거하고 **독립 데모용**으로 재구성한 것입니다.
-
----
-
-## 2. 배경 & 문제 상황
-
-- Region 생성/삭제/수정 시 **모든 Region을 재렌더링**  
-- 50개 이상 Region에서 **스크롤·클릭 시 INP 500 ms+**, 체감 버벅임 심화  
-- DevTools Performance 탭 `Scripting` 영역 80 ms 이상 소모
-
----
-
-## 3. 핵심 개선 포인트
-
-### 📌 `updateVisibleRegions()` 한눈에 보기
-```typescript
-private updateVisibleRegions = () => {
-  if (this.isUpdating) return;              // 드래그 중 중복 호출 방지
-  const RENDER_BUFFER_SEC = 30;             // 앞뒤 30초 버퍼
-
-  // 1) 현재 뷰포트(가시 시간 범위) 계산
-  const { start, end } = this.getVisibleTimeRange();
-  const expandedStart = Math.max(0, start - RENDER_BUFFER_SEC);
-  const expandedEnd   = end + RENDER_BUFFER_SEC;
-
-  // 2) 가시 구간에 속하는 Region만 생성
-  this.iv_region.regionList.forEach((tc, id) => {
-    if (tc.eTime > expandedStart && tc.sTime < expandedEnd) {
-      const inst = this.im_makeRegion(tc);
-      this.visibleRegionInstances.set(id, inst);
-    }
-  });
-};
-```
-
-|  | 개선 전 | 개선 후 |
-| --- | --- | --- |
-| **렌더링 범위** | 모든 Region DOM 순회 후 전체 갱신 | **가시 영역 + ±30 s** 범위만 렌더 |
-| **이벤트 처리** | 스크롤·줌마다 재렌더 폭주 | `lodash/throttle(500 ms)`로 폭주 억제 |
-| **Script 실행** | 80 ms | **28 ms (−65 %)** |
-| **INP** | 548 ms | **170 ms (−69 %)** |
-
----
-
-## 4. 실행 방법
-
+## 빠른 시작
+1) DB 준비  
 ```bash
-git clone https://github.com/jun-seok816/video_slice.git
-cd waveform-region-optimizer
+mysql -u root -p -e "CREATE DATABASE subscription CHARACTER SET utf8mb4;"
+mysql -u root -p subscription < "Dump20250821 (1).sql"
+```
+2) 백엔드  
+```bash
+cd back-end
+npm install            # npm version 20.19.5
+npm run start          # http://localhost:3002
+```
+3) 프런트엔드  
+```bash
+cd front-end
 npm install
-npm start        # http://localhost:3000
+npm run build
 ```
 
-> **데모 사이트**: https://waveform-demo.vercel.app  
-> (Region 100개 자동 로드 버튼 → 렉 없는 편집 경험 확인)
+## 주요 기능
+- 이메일/Google OAuth 로그인 및 세션 유지
+- 구독 플랜 업그레이드,다운그레이드 및 다음 결제일 조정
+- PortOne Billing Key 발급/삭제, 정기 결제 스케줄 생성,취소
+- 결제 웹훅 처리 후 토큰 지급,차감 흐름
 
----
-
-## 5. 체험 가이드
-
-1. **Add 100 Regions** 버튼 클릭  
-2. 마우스 휠로 빠르게 스크롤 & 줌 인/아웃  
-3. DevTools **Performance Insights** → **INP, Scripting** 수치 확인  
-4. Region 드래그 시 `isUpdating` 플래그로 **중복 렌더 차단** 체험
-
----
-
-## 6. 성능 지표 (Before → After)
-
-| 지표 | 개선 전 | 개선 후 | 개선율 |
-| --- | --- | --- | --- |
-| **INP** | 548 ms | **90 ms** | −90 % |
-| **Script 실행** | 80 ms | **28 ms** | −65 % |
-| **FPS** | 30↓ | **60 고정** | +100 % |
-
----
-
-## 7. 배우고 얻은 점
-
-- **“보이는 것만 그린다”** 원칙이 가장 강력한 프론트엔드 최적화  
-- 이벤트/상태 경합 시 **isUpdating·throttle** 같은 *가드 로직* 필수  
-- DevTools 지표(INP, Scripting)를 활용해 **개선 효과를 수치로 명확히 제시**
-
----
-
-## 8. 라이선스 & 참고
-
-- 본 코드는 clipSeek 내부 기능을 **스터디·포트폴리오 목적**으로 변형해 공개합니다.  
-  상업적 사용은 금지됩니다.  
-- WaveSurfer.js https://wavesurfer.xyz/docs/ © MIT license
+## 외부 API/라이브러리
+- PortOne Browser/Server SDK: 빌링키 발급, 결제 검증,스케줄링
+- Google OAuth: 소셜 로그인
+- MySQL 8+: 구독/결제 데이터 저장 , 이벤트 스케쥴러로 구독 검증,스케줄링

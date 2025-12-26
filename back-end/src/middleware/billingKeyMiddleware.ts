@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { PlanName, PLAN_ITEMS } from "../all_Types";
 
 type PlanChangeType = "UPGRADE" | "DOWNGRADE" | "SAME";
 
@@ -12,7 +13,13 @@ export async function payNowAndRecord(
 ) {
   try {
     const flags: PlanChangeType | undefined = res.locals.planChange;
+    const newPlan: PlanName | undefined = res.locals.newPlan;
+    const newPlanPrice: number | undefined = res.locals.newPlanPrice;
+    const newPlanGrant: number | undefined = res.locals.newPlanGrant;
     if (!flags) return next(new Error("planChange 플래그 누락"));
+    if (flags === "UPGRADE" && !newPlan) {
+      return next(new Error("신규 플랜 정보 누락"));
+    }
     if (flags === "DOWNGRADE") {
       next();
       return;
@@ -20,17 +27,20 @@ export async function payNowAndRecord(
 
     const subscriptionId: number | null =
       Number(res.locals.subscription?.id) || null;
+    if (!subscriptionId) return next(new Error("subscriptionId 필요"));
 
     const billingKey: string = res.locals.user?.portone_billing_key;
-    ("");
 
-    const amount = Number(res.locals.subscription?.price_cents);
+    const amount =
+      flags === "UPGRADE"
+        ? newPlanPrice ?? (newPlan ? PLAN_ITEMS[newPlan].price : null)
+        : Number(res.locals.subscription?.price_cents);
     const currency = "KRW".toUpperCase();
     const orderName =
       `${res.locals.subscription_schedules.length + 1} 회차 결제` || "즉시결제";
 
     if (!billingKey) throw new Error("billingKey 필요");
-    if (!Number.isFinite(amount) || amount <= 0)
+    if (!Number.isFinite(amount) || amount === null|| amount <= 0)
       throw new Error("amount(결제 금액) 필요");
 
     const paymentId = encodeURIComponent(`pay_${uuidv4()}`);
@@ -58,7 +68,7 @@ export async function payNowAndRecord(
       Number(res.locals.subscription?.user_id) || null;
 
     if (status < 200 || status >= 300) {
-      // 성공 결제 히스토리 저장 (idempotent)
+      // 실패 결제 히스토리 저장 (idempotent)
       await process._myApp.db.promise().query(
         `INSERT INTO payments
            (user_id, subscription_id, payment_id, is_success, order_name, amount_krw, currency,  paid_at, created_at)
@@ -79,24 +89,76 @@ export async function payNowAndRecord(
     }
     if (!userId) throw new Error("user_id 확인 실패");
 
-    // 성공 결제 히스토리 저장 (idempotent)
-    await process._myApp.db.promise().query(
-      `INSERT INTO payments
-           (user_id, subscription_id, payment_id, portone_tx_id, order_name, amount_krw, currency,  paid_at, created_at)
-         VALUES
-           (?,       ?,               ?,          ?,             ?,          ?,          ?,         NOW(),  NOW())
-         ON DUPLICATE KEY UPDATE
-           portone_tx_id = VALUES(portone_tx_id)`,
-      [
-        userId,
-        subscriptionId,
-        paymentId,
-        portoneTxId,
-        orderName,
-        amount,
-        currency,
-      ]
-    );
+    // 성공 결제 기록 및 구독 업그레이드 적용을 같은 트랜잭션에서 처리
+    const conn = await process._myApp.db.promise().getConnection();
+    try {
+      await conn.beginTransaction();
+
+      await conn.query(
+        `INSERT INTO payments
+             (user_id, subscription_id, payment_id, portone_tx_id, order_name, amount_krw, currency,  paid_at, created_at)
+           VALUES
+             (?,       ?,               ?,          ?,             ?,          ?,          ?,         NOW(),  NOW())
+           ON DUPLICATE KEY UPDATE
+             portone_tx_id = VALUES(portone_tx_id)`,
+        [
+          userId,
+          subscriptionId,
+          paymentId,
+          portoneTxId,
+          orderName,
+          amount,
+          currency,
+        ]
+      );
+
+      if (flags === "UPGRADE") {
+        const targetPlan = newPlan as PlanName;
+        const price = newPlanPrice ?? PLAN_ITEMS[targetPlan].price;
+        const grant = newPlanGrant ?? PLAN_ITEMS[targetPlan].token_grant;
+
+        await conn.query(
+          `UPDATE subscriptions
+              SET plan_name         = ?,
+                  billing_cycle     = 'MONTHLY',
+                  price_cents       = ?,
+                  token_grant       = ?,
+                  current_period_end = DATE_ADD(NOW(), INTERVAL 1 MONTH),
+                  pending_plan_name     = NULL,
+                  pending_billing_cycle = NULL,
+                  cancel_at_period_end  = 0,
+                  updated_at            = NOW()
+            WHERE id = ?`,
+          [targetPlan, price, grant, subscriptionId]
+        );
+
+        if (grant > 0) {
+          await conn.query(
+            `UPDATE users SET token_balance = token_balance + ? WHERE id = ?`,
+            [grant, userId]
+          );
+        }
+
+        // 최신 상태를 다음 미들웨어에서 쓰도록 로드
+        const [[updatedSub]]: any = await conn.query(
+          `SELECT * FROM subscriptions WHERE id = ? LIMIT 1`,
+          [subscriptionId]
+        );
+        const [[updatedUser]]: any = await conn.query(
+          `SELECT * FROM users WHERE id = ? LIMIT 1`,
+          [userId]
+        );
+        res.locals.subscription = updatedSub;
+        res.locals.user = updatedUser;
+      }
+
+      await conn.commit();
+    } catch (dbErr) {
+      await conn.rollback();
+      throw dbErr;
+    } finally {
+      conn.release();
+    }
 
     // 다음 미들웨어에서 쓰도록 결과 공유
     res.locals.payment = {
