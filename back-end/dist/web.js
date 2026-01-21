@@ -15,7 +15,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = __importDefault(require("./db"));
 const lv_Db = new db_1.default();
 // .env 파일에서 환경 변수 로드
-dotenv_1.default.config();
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../.env') });
 const gf_cs = (req, res, next) => {
     if (!req.session || !req.session.userId) {
         res.status(401).json({ err: true, msg: "세션 만료" });
