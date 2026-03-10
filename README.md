@@ -43,7 +43,7 @@ subscription/
 │   │   ├── component/Subscription
 │   │   └── class/     # 상태/서비스 래퍼
 │   └── package.json
-├── Dump20250821 (1).sql  # DB 스키마 및 샘플 데이터
+├── dump.sql  # DB 스키마 및 샘플 데이터
 └── README.md
 ```
 
@@ -58,7 +58,7 @@ subscription/
 ## 폴더 구조
 - `front-end` : React + TypeScript SPA (로그인·플랜 변경 UI)
 - `back-end` : Express + TypeScript API 서버, PortOne/DB 연동
-- `Dump20250821 (1).sql` : MySQL 스키마 및 샘플 데이터
+- `dump.sql` : MySQL 스키마 및 샘플 데이터
 >>>>>>> 46e2cf2ed740105a817c042e8500203a61c855b5
 
 ## 빠른 시작
@@ -69,7 +69,7 @@ mysql -u root -p
 CREATE DATABASE subscription CHARACTER SET utf8mb4;
 EXIT;
 
-mysql -u root -p subscription < "Dump20250821 (1).sql"
+mysql -u root -p subscription < "dump.sql"
 ```
 
 트리거가 포함되어 있어 사용자 행 생성 시 자동으로 기본 구독 레코드가 생성됩니다.
@@ -151,7 +151,7 @@ ev_apply_pending_free 이벤트가 정기적으로 `subscriptions` 테이블에�
 ---
 =======
 mysql -u root -p -e "CREATE DATABASE subscription CHARACTER SET utf8mb4;"
-mysql -u root -p subscription < "Dump20250821 (1).sql"
+mysql -u root -p subscription < "dump.sql"
 ```
 2) 백엔드  
 ```bash
