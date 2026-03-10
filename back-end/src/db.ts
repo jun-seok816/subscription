@@ -22,7 +22,7 @@ export default class Db {
     this.iv_Data = {      
       DB: {
         host: "127.0.0.1",
-        port: 3306,
+        port: 3309,
         user: "root",
         password: "loutbtbahah4281!",
         database: "subscription",        

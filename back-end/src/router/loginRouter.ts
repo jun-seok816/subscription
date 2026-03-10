@@ -87,12 +87,53 @@ router.post("/logout", (req: Request, res: Response) => {
 });
 
 
-router.get("/loginSession", (req, res) => {
+router.get("/loginSession", async (req, res) => {
   console.log(`session Data user_id: %o`, req.session.userId);
+
+  const autoLoginEmail = (process.env.AUTO_LOGIN_EMAIL || "").trim();
+  const autoLoginRandom = (process.env.AUTO_LOGIN_RANDOM || "")
+    .trim()
+    .toLowerCase();
+  const autoLoginEnabled =
+    (autoLoginEmail.length > 0 || ["1", "true", "yes"].includes(autoLoginRandom)) &&
+    process.env.NODE_ENV !== "production";
+
+  if (!req.session.userId && autoLoginEnabled) {
+    const email =
+      autoLoginEmail ||
+      `portfolio+${Date.now().toString(36)}${Math.random()
+        .toString(36)
+        .slice(2, 8)}@gmail.com`;
+
+    try {
+      const [rows] = await process._myApp.db
+        .promise()
+        .query<RowDataPacket[]>(
+          "SELECT id FROM users WHERE email = ? LIMIT 1",
+          [email]
+        );
+
+      let userId: number;
+      if (rows.length === 0) {
+        const [result] = await process._myApp.db
+          .promise()
+          .query<OkPacket>("INSERT INTO users (email) VALUES (?)", [email]);
+        userId = Number(result.insertId);
+      } else {
+        userId = Number(rows[0].id);
+      }
+
+      req.session.userId = userId;
+      req.session.email = email;
+    } catch (err) {
+      console.error("auto login failed:", err);
+    }
+  }
+
   if (req.session.userId) {
     res.send({
       loggedIn: true,
-      email: req.session.email,      
+      email: req.session.email,
     });
   } else {
     res.send({ loggedIn: false });

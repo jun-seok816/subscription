@@ -161,7 +161,7 @@ CREATE TABLE `users` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '가입 일시',
   `portone_customer_id` varchar(100) DEFAULT NULL COMMENT 'PortOne 고객 ID',
   `portone_billing_key` varchar(255) DEFAULT NULL COMMENT 'PortOne 빌링키(토큰)',
-  `billing_key_status` enum('ACTIVE','INACTIVE','REVOKED') NOT NULL DEFAULT 'ACTIVE',
+  `billing_key_status` enum('ACTIVE','INACTIVE','REVOKED') NOT NULL DEFAULT 'INACTIVE',
   `card_brand` varchar(50) DEFAULT NULL,
   `card_last4` char(4) DEFAULT NULL,
   `easy_pay_provider` varchar(50) DEFAULT NULL COMMENT 'EASY_PAY 지갑 종류',
