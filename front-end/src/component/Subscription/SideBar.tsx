@@ -45,23 +45,7 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
             </span>
           </nav>
         </div>
-
-        <nav className="sidebar__section">
-          <span className="sidebar__title">계정</span>
-
-          <button
-            type="button"
-            className="sidebar__item sidebar__item--danger"
-            onClick={()=>{
-              lv_login.im_Logout();
-            }}
-            disabled={lv_user === null}            
-          >
-            <span className="sidebar__label">
-              {lv_user===null ? "로그아웃 중..." : "로그아웃"}
-            </span>
-          </button>
-        </nav>
+        
       </div>
     </aside>
   );
