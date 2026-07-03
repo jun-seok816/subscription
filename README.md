@@ -63,15 +63,15 @@ erDiagram
         bigint id PK "사용자 ID"
         varchar email "로그인 이메일"
         int token_balance "보유 토큰"
-        datetime created_at "가입 일시"
+        TIMESTAMP created_at "가입 일시"
         varchar portone_customer_id UK "PortOne 고객 ID"
         varchar portone_billing_key UK "PortOne 빌링키"
         enum billing_key_status "빌링키 상태"
         varchar card_brand "카드 브랜드"
         char card_last4 "카드 끝 4자리"
         varchar easy_pay_provider "간편결제 제공자"
-        datetime billing_key_created_at "빌링키 생성일"
-        datetime billing_key_updated_at "빌링키 수정일"
+        TIMESTAMP billing_key_created_at "빌링키 생성일"
+        TIMESTAMP billing_key_updated_at "빌링키 수정일"
     }
 
     subscriptions {
@@ -81,11 +81,11 @@ erDiagram
         enum billing_cycle "결제 주기"
         int price_cents "청구 금액"
         int token_grant "지급 토큰"
-        datetime current_period_end "현재 주기 종료일"
+        TIMESTAMP current_period_end "현재 주기 종료일"
         enum pending_plan_name "다음 주기 플랜"
         enum pending_billing_cycle "다음 주기 결제 주기"
         tinyint cancel_at_period_end "기간 종료 후 해지 여부"
-        datetime updated_at "수정 일시"
+        TIMESTAMP updated_at "수정 일시"
     }
 
     payments {
@@ -98,19 +98,19 @@ erDiagram
         int amount_krw "결제 금액"
         char currency "통화"
         tinyint is_success "성공 여부"
-        datetime paid_at "결제 일시"
-        datetime created_at "생성 일시"
+        TIMESTAMP paid_at "결제 일시"
+        TIMESTAMP created_at "생성 일시"
     }
 
     subscription_schedules {
         varchar payment_id PK "예약 결제 ID"
         bigint subscription_id FK "구독 ID"
-        datetime schedule_at "예약 결제일"
+        TIMESTAMP schedule_at "예약 결제일"
         int amount_krw "예약 금액"
         enum status "예약 상태"
-        datetime created_at "생성 일시"
-        datetime cancelled_at "취소 일시"
-        datetime executed_at "실행 일시"
+        TIMESTAMP created_at "생성 일시"
+        TIMESTAMP cancelled_at "취소 일시"
+        TIMESTAMP executed_at "실행 일시"
         varchar product_name "플랜명"
     }
 
