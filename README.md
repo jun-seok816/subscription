@@ -52,35 +52,68 @@ subscription/
 
 ### 데이터 모델
 
-```
-users (id PK)
- ├─ email
- ├─ token_balance
- ├─ portone_customer_id
- ├─ portone_billing_key
- ├─ billing_key_status
- └─ card_brand / card_last4 ...
+```mermaid
+erDiagram
+    users ||--o{ subscriptions : "1:N"
+    users ||--o{ payments : "1:N"
+    subscriptions ||--o{ payments : "1:N"
+    subscriptions ||--o{ subscription_schedules : "1:N"
 
-subscriptions (id PK)
- ├─ user_id FK → users.id
- ├─ plan_name / billing_cycle
- ├─ price_cents / token_grant
- ├─ current_period_end
- ├─ pending_plan_name / pending_billing_cycle
- └─ cancel_at_period_end
+    users {
+        bigint id PK "사용자 ID"
+        varchar email "로그인 이메일"
+        int token_balance "보유 토큰"
+        datetime created_at "가입 일시"
+        varchar portone_customer_id UK "PortOne 고객 ID"
+        varchar portone_billing_key UK "PortOne 빌링키"
+        enum billing_key_status "빌링키 상태"
+        varchar card_brand "카드 브랜드"
+        char card_last4 "카드 끝 4자리"
+        varchar easy_pay_provider "간편결제 제공자"
+        datetime billing_key_created_at "빌링키 생성일"
+        datetime billing_key_updated_at "빌링키 수정일"
+    }
 
-subscription_schedules (payment_id PK)
- ├─ subscription_id FK → subscriptions.id
- ├─ schedule_at / executed_at / cancelled_at
- ├─ amount_krw
- └─ status / product_name
+    subscriptions {
+        bigint id PK "구독 ID"
+        bigint user_id FK "사용자 ID"
+        enum plan_name "현재 플랜"
+        enum billing_cycle "결제 주기"
+        int price_cents "청구 금액"
+        int token_grant "지급 토큰"
+        datetime current_period_end "현재 주기 종료일"
+        enum pending_plan_name "다음 주기 플랜"
+        enum pending_billing_cycle "다음 주기 결제 주기"
+        tinyint cancel_at_period_end "기간 종료 후 해지 여부"
+        datetime updated_at "수정 일시"
+    }
 
-payments (payment_id UNIQUE)
- ├─ user_id FK → users.id
- ├─ subscription_id FK → subscriptions.id
- ├─ amount_krw / currency
- ├─ order_name / is_success
- └─ paid_at / created_at
+    payments {
+        bigint id PK "결제 이력 ID"
+        bigint user_id FK "사용자 ID"
+        bigint subscription_id FK "구독 ID"
+        varchar payment_id UK "결제 요청 ID"
+        varchar portone_tx_id UK "PortOne 거래 ID"
+        varchar order_name "주문명"
+        int amount_krw "결제 금액"
+        char currency "통화"
+        tinyint is_success "성공 여부"
+        datetime paid_at "결제 일시"
+        datetime created_at "생성 일시"
+    }
+
+    subscription_schedules {
+        varchar payment_id PK "예약 결제 ID"
+        bigint subscription_id FK "구독 ID"
+        datetime schedule_at "예약 결제일"
+        int amount_krw "예약 금액"
+        enum status "예약 상태"
+        datetime created_at "생성 일시"
+        datetime cancelled_at "취소 일시"
+        datetime executed_at "실행 일시"
+        varchar product_name "플랜명"
+    }
+
 ```
 
 ### 흐름도
