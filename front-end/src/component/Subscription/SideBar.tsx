@@ -45,7 +45,22 @@ export default function SideBar(props: { lv_Obj: Subscription }) {
             </span>
           </nav>
         </div>
-        
+        <div className="nptubnbowbpeih27">
+          <nav className="sidebar__section">
+            <span className="sidebar__title">Project</span>
+            <a
+              className="sidebar__item sidebar__external-link"
+              href="https://github.com/jun-seok816/subscription"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub 저장소 열기"
+            >
+              <i className="sidebar__icon bi bi-github" />
+              <span className="sidebar__label">GitHub</span>
+              <i className="bi bi-box-arrow-up-right sidebar__external-icon" />
+            </a>
+          </nav>
+        </div>
       </div>
     </aside>
   );

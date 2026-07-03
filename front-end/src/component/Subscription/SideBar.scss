@@ -124,6 +124,16 @@ $gray-light: #7f7f89;
       color: #fff;
       line-height: 1;
     }
+
+    &__external-link {
+      justify-content: flex-start;
+    }
+
+    &__external-icon {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: $txt-muted;
+    }
   }
 
   .panel {
