@@ -102,22 +102,7 @@ ev_apply_pending_free 이벤트가 정기적으로 `subscriptions` 테이블에�
 ```
 
 ---
-=======
-mysql -u root -p -e "CREATE DATABASE subscription CHARACTER SET utf8mb4;"
-mysql -u root -p subscription < "dump.sql"
-```
-2) 백엔드  
-```bash
-cd back-end
-npm install            # npm version 20.19.5
-npm run start          # http://localhost:3002
-```
-3) 프런트엔드  
-```bash
-cd front-end
-npm install
-npm run build
-```
+
 
 ## 주요 기능
 - 이메일/Google OAuth 로그인 및 세션 유지
