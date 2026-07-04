@@ -79,9 +79,14 @@ sequenceDiagram
 
 ## 시연 영상
 
-<video src="./download.mp4" controls width="100%"></video>
 
-[시연 영상 파일로 보기](./download.mp4)
+
+<img width="1152" height="648" alt="download (1)" src="https://github.com/user-attachments/assets/ace48375-985e-4048-a847-d6d1b25d91a3" />
+
+
+## 시연 사이트
+
+http://221.154.120.167:3002/
 
 ---
 
