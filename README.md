@@ -77,6 +77,14 @@ sequenceDiagram
 
 ---
 
+## 시연 영상
+
+<video src="./download.mp4" controls width="100%"></video>
+
+[시연 영상 파일로 보기](./download.mp4)
+
+---
+
 ## ERD
 
 ```mermaid

@@ -136,6 +136,7 @@ out
 
 #mp4
 *.mp4
+!download.mp4
 
 #mp3
 *.mp3
