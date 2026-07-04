@@ -1,26 +1,20 @@
 .ubt {
-  --bg: #ffffff;
-  --border: #e5e7eb;
-  --text: #111827;
-  --muted: #6b7280;
-  --muted-2: #9ca3af;
-  --chip-active-bg: #ecfdf5;
-  --chip-active-fg: #065f46;
-  --chip-inactive-bg: #f3f4f6;
-  --chip-inactive-fg: #374151;
-  --chip-revoked-bg: #fef2f2;
-  --chip-revoked-fg: #991b1b;
-
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: inherit;
+}
+
+.ubt__paymentRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .ubt__brandIcon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   background: #fff;
   object-fit: contain;
 }
@@ -33,16 +27,20 @@
 
 .ubt__cellMain {
   display: flex;
-  flex-direction: column;
   min-width: 0;
+  flex: 1;
+  flex-direction: column;
 }
 
 .ubt__brandName {
-  font-weight: 600;
+  color: var(--text);
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .ubt__sub {
-  color: var(--muted-2);
+  margin-top: 2px;
+  color: var(--muted);
   font-size: 12px;
+  font-weight: 650;
 }

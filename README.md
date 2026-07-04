@@ -1,56 +1,83 @@
-# 구독/결제 데모 프로젝트
+# 구독 결제 및 토큰 관리 시스템
 
-간단한 구독 시나리오를 재현한 풀스택 데모입니다.  
-이메일·Google OAuth 로그인, 플랜 변경, 토큰 차감, PortOne 빌링키/정기결제 흐름, 웹훅 처리를 한 프로젝트에서 확인할 수 있습니다.
-
----
-
-## 기술 스택
-
-- **프런트엔드**: React 18, TypeScript, webpack, react-router, react-bootstrap, react-toastify
-- **백엔드**: Node.js(Express), TypeScript, mysql2, express-session, PortOne Server SDK, axios
-- **데이터베이스**: MySQL 8+
-- **기타**: dotenv, uuid, lodash/throttle
+사용자의 구독 플랜에 따라 정기결제와 토큰 지급/차감을 관리하는 풀스택 프로젝트입니다.  
+이메일·Google OAuth 로그인, 플랜 변경, 결제수단 등록, 정기결제 예약, 웹훅 기반 결제 처리 흐름을 한 프로젝트에서 확인할 수 있습니다.
 
 ---
 
-## 주요 기능
+## 시퀀스 다이어그램
 
-- 이메일/Google OAuth 기반 로그인 및 세션 관리
-- 구독 플랜 업그레이드·다운그레이드, 다음 결제일 변경
-- PortOne Billing Key 발급/삭제, 정기 결제 스케줄 생성·취소
-- 결제 성공/실패 웹훅 처리 및 토큰 지급
-- 플랜별 토큰 차감 기능 호출 UI (react-window 기반 리스트)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 사용자
+    participant FE as React SPA
+    participant API as Express API
+    participant Google as Google OAuth
+    participant DB as MySQL
+    participant PortOne as PortOne
 
----
+    rect rgb(245, 248, 255)
+        Note over User,DB: 1. 로그인 및 구독 상태 조회
+        User->>FE: Google 로그인
+        FE->>Google: OAuth 인증
+        Google-->>FE: access_token 반환
+        FE->>API: access_token 전달
+        API->>Google: 사용자 이메일 검증
+        API->>DB: 사용자/구독 정보 조회 또는 생성
+        API-->>FE: 세션과 현재 구독 상태 반환
+    end
 
-## 프로젝트 구조
+    rect rgb(250, 250, 240)
+        Note over User,PortOne: 2. 결제수단 등록
+        User->>FE: 결제수단 등록 요청
+        FE->>PortOne: 빌링키 발급 요청
+        PortOne-->>FE: billingKey 반환
+        FE->>API: billingKey 저장 요청
+        API->>PortOne: billingKey 유효성 검증
+        API->>DB: 고객 ID와 billingKey 저장
+    end
 
+    rect rgb(245, 255, 248)
+        Note over User,PortOne: 3. 플랜 변경과 첫 결제
+        User->>FE: 플랜 업그레이드/다운그레이드
+        FE->>API: 플랜 변경 요청
+        API->>DB: 구독 변경 내용 잠금 및 계산
+        API->>PortOne: 빌링키로 즉시 결제
+        PortOne-->>API: 결제 결과 반환
+        API->>DB: 결제 이력, 구독 상태, 토큰 반영
+        API->>PortOne: 다음 정기결제 예약
+        API->>DB: 예약 결제 정보 저장
+        API-->>FE: 최신 구독 상태 반환
+    end
+
+    rect rgb(255, 248, 245)
+        Note over PortOne,DB: 4. 예약결제 웹훅 처리
+        PortOne-->>API: 결제 성공/실패 웹훅
+        API->>PortOne: 결제 상세 조회 및 검증
+        alt 결제 성공
+            API->>DB: 예약 EXECUTED 처리, 결제 이력 저장
+            API->>DB: 다음 주기 확정 및 토큰 지급
+            API->>PortOne: 다음 정기결제 예약
+            API->>DB: 새 예약 정보 저장
+        else 결제 실패
+            API->>DB: 예약 CANCELLED 처리, 실패 이력 저장
+        end
+        API-->>PortOne: 처리 결과 응답
+    end
+
+    rect rgb(248, 245, 255)
+        Note over User,DB: 5. 토큰 기반 기능 사용
+        User->>FE: 토큰 차감 기능 실행
+        FE->>API: 기능 API 요청
+        API->>DB: 플랜 권한 확인 및 토큰 차감
+        API-->>FE: 실행 결과 반환
+    end
 ```
-subscription/
-├── back-end/          # Express + TypeScript API 서버
-│   ├── src/
-│   │   ├── router/    # login, subscription, payment, webhook 라우터
-│   │   ├── middleware/
-│   │   ├── all_Types.ts, all_Store.ts
-│   │   └── web.ts     # 서버 엔트리포인트
-│   ├── dist/          # webpack 번들 산출물
-│   └── package.json
-├── front-end/         # React SPA
-│   ├── src/
-│   │   ├── component/Login
-│   │   ├── component/Subscription
-│   │   └── class/     # 상태/서비스 래퍼
-│   └── package.json
-├── dump.sql  # DB 스키마 및 샘플 데이터
-└── README.md
-```
 
 ---
 
-## ERD / 아키텍처
-
-### 데이터 모델
+## ERD
 
 ```mermaid
 erDiagram
@@ -113,38 +140,21 @@ erDiagram
         TIMESTAMP executed_at "실행 일시"
         varchar product_name "플랜명"
     }
-
-```
-
-### 흐름도
-
-```
-[React SPA] --axios--> [Express API] --MySQL--
-     |                         |
-     | PortOne Browser SDK     | PortOne Server SDK (결제 검증/스케줄)
-     └------ PortOne ---------┘
-
-Webhooks:
-PortOne → /pw/portone → (verify) → DB 업데이트 → 토큰 지급/스케줄링
-
-DB Event Scheduler:
-ev_apply_pending_free 이벤트가 정기적으로 `subscriptions` 테이블에서
-`cancel_at_period_end = 1` 또는 `pending_plan_name = 'FREE'` 대상자를 조회해
-무료 플랜으로 일괄 전환합니다. PortOne 정책상 무료 전환 예약에 대한
-웹훅이 제공되지 않아, DB 이벤트로 직접 처리합니다.
 ```
 
 ---
 
+## 기술 스택
 
-## 주요 기능
-- 이메일/Google OAuth 로그인 및 세션 유지
-- 구독 플랜 업그레이드,다운그레이드 및 다음 결제일 조정
-- PortOne Billing Key 발급/삭제, 정기 결제 스케줄 생성,취소
-- 결제 웹훅 처리 후 토큰 지급,차감 흐름
+- **프런트엔드**: React 18, TypeScript, webpack, react-router, react-bootstrap, react-toastify
+- **백엔드**: Node.js(Express), TypeScript, mysql2, express-session, PortOne Server SDK, axios
+- **데이터베이스**: MySQL 8+
+- **기타**: dotenv, uuid, lodash/throttle
+
+---
 
 ## 외부 API/라이브러리
-- PortOne Browser/Server SDK: 빌링키 발급, 결제 검증,스케줄링
-- Google OAuth: 소셜 로그인
-- MySQL 8+: 구독/결제 데이터 저장 , 이벤트 스케쥴러로 구독 검증,스케줄링
 
+- **PortOne Browser/Server SDK**: 빌링키 발급, 결제 검증, 정기결제 스케줄링
+- **Google OAuth**: 소셜 로그인
+- **MySQL Event Scheduler**: 구독 상태 검증 및 무료 플랜 전환 처리

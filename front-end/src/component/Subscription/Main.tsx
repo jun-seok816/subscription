@@ -56,7 +56,7 @@ export default function MainComponent() {
       <LoginModal lv_Obj={lv_Obj.pt_login}/>
       <ScheduleModal lv_Obj={lv_Obj} />
       <PaymentModal lv_Obj={lv_Obj} />
-      <div style={{ display: "flex", height: "100%" }}>
+      <div className="app-shell">
         <SideBar lv_Obj={lv_Obj} />
         <SubscriptionManagementPage lv_Obj={lv_Obj} />
       </div>

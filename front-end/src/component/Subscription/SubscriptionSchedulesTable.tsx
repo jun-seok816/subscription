@@ -21,18 +21,8 @@ const statusLabel: Record<ScheduleStatus, string> = {
 };
 
 export default function ScheduleModal(props: { lv_Obj: Subscription }) {
-  const customStyles = {
-    content: {
-      top: "50%",
-      left: "50%",
-      right: "auto",
-      bottom: "auto",
-      marginRight: "-50%",
-      transform: "translate(-50%, -50%)",
-    },
-  };
-
   Modal.setAppElement("#app");
+
   return (
     <Modal
       isOpen={props.lv_Obj.iv_schedule}
@@ -40,7 +30,8 @@ export default function ScheduleModal(props: { lv_Obj: Subscription }) {
         props.lv_Obj.iv_schedule = false;
         props.lv_Obj.im_forceRender();
       }}
-      style={customStyles}
+      className="app-modal"
+      overlayClassName="app-modal__overlay"
       contentLabel="schedule Modal"
     >
       {props.lv_Obj.pt_SubscriptionStore.schedule && (
@@ -73,9 +64,7 @@ function SubscriptionSchedulesTable({
   }, [data]);
 
   const filtered = useMemo(() => {
-    const rows =
-      filter === "ALL" ? data : data.filter((r) => r.status === filter);
-    return rows;
+    return filter === "ALL" ? data : data.filter((r) => r.status === filter);
   }, [data, filter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -88,7 +77,11 @@ function SubscriptionSchedulesTable({
 
   return (
     <div className="sched-wrap">
-      {/* 상단 탭/카운터 */}
+      <div className="sched-title">
+        <h2>구독 스케줄</h2>
+        <p>예약된 정기결제와 처리 상태를 확인합니다.</p>
+      </div>
+
       <div className="sched-tabs">
         <button
           className={`tab ${filter === "ALL" ? "active" : ""}`}
@@ -116,7 +109,6 @@ function SubscriptionSchedulesTable({
         </button>
       </div>
 
-      {/* 테이블 */}
       <div className="sched-table">
         <table>
           <thead>
@@ -126,10 +118,8 @@ function SubscriptionSchedulesTable({
               <th className="col-datetime">예정일시</th>
               <th className="col-datetime">완료일시</th>
               <th className="col-datetime">해지일시</th>
-              <th className="col-id">
-                상품명                
-              </th>
-              <th className="col-amt">금액(₩)</th>
+              <th className="col-id">상품명</th>
+              <th className="col-amt">금액(원)</th>
             </tr>
           </thead>
           <tbody>
@@ -145,7 +135,7 @@ function SubscriptionSchedulesTable({
                 <td className="col-status">
                   <span className={`badge ${r.status.toLowerCase()}`}>
                     {statusLabel[r.status]}
-                  </span>             
+                  </span>
                 </td>
                 <td className="mono">{fmt(r.created_at)}</td>
                 <td className="mono">{fmt(r.schedule_at)}</td>
@@ -163,7 +153,6 @@ function SubscriptionSchedulesTable({
         </table>
       </div>
 
-      {/* 페이지네이션 */}
       <div className="sched-pagination">
         <button
           className="nav"
