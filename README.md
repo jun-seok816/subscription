@@ -159,14 +159,35 @@ erDiagram
 
 ## 기술 스택
 
-- **프런트엔드**: React 18, TypeScript, webpack, react-router, react-bootstrap, react-toastify
-- **백엔드**: Node.js(Express), TypeScript, mysql2, express-session, PortOne Server SDK, axios
-- **데이터베이스**: MySQL 8+
-- **기타**: dotenv, uuid, lodash/throttle
+**프런트엔드**
+
+![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=111111)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=ffffff)
+![Webpack](https://img.shields.io/badge/Webpack-8DD6F9?style=for-the-badge&logo=webpack&logoColor=111111)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=reactrouter&logoColor=ffffff)
+![React Bootstrap](https://img.shields.io/badge/React_Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=ffffff)
+
+**백엔드**
+
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=ffffff)
+![Express](https://img.shields.io/badge/Express-111111?style=for-the-badge&logo=express&logoColor=ffffff)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=ffffff)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=ffffff)
+![PortOne](https://img.shields.io/badge/PortOne-111827?style=for-the-badge)
+
+**데이터베이스**
+
+![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?style=for-the-badge&logo=mysql&logoColor=ffffff)
+
+**기타**
+
+![dotenv](https://img.shields.io/badge/dotenv-ECD53F?style=for-the-badge&logo=dotenv&logoColor=111111)
+![UUID](https://img.shields.io/badge/UUID-4B5563?style=for-the-badge)
+![Lodash](https://img.shields.io/badge/Lodash-3492FF?style=for-the-badge&logo=lodash&logoColor=ffffff)
 
 ---
 
-## 외부 API/라이브러리
+## 외부 연동 및 주요 인프라 기능
 
 - **PortOne Browser/Server SDK**: 빌링키 발급, 결제 검증, 정기결제 스케줄링
 - **Google OAuth**: 소셜 로그인
