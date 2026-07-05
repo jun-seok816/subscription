@@ -1,7 +1,7 @@
-# 구독 결제 및 토큰 관리 시스템
+﻿# 구독 결제 및 토큰 관리 시스템
 
 사용자의 구독 플랜에 따라 정기결제와 토큰 지급/차감을 관리하는 프로젝트입니다.  
-React와 TypeScript로 프런트엔드를 구성하고, Express 기반 API 서버에서 Google OAuth, Payment Gateway, MySQL을 연동해 구독 결제 흐름을 구현했습니다.
+프론트엔드는 React와 TypeScript로 구현하고, 백엔드는 Express와 MySQL로 회원·구독·토큰 상태를 관리했습니다. 로그인은 Google OAuth, 결제수단 등록과 정기결제는 PortOne 결제 API를 연동해 처리했습니다.
 
 ---
 
@@ -11,11 +11,11 @@ React와 TypeScript로 프런트엔드를 구성하고, Express 기반 API 서�
 sequenceDiagram
     autonumber
     actor User as 사용자
-    participant FE as Front-End (React)
-    participant API as Back-End (Express)
-    participant Google as 소셜 로그인 (Google OAuth)
-    participant DB as Database (MySQL)
-    participant PortOne as Payment Gateway
+    participant FE as Front-end<br/>(React)
+    participant API as Back-end<br/>(Express)
+    participant Google as Social Login<br/>(Google OAuth)
+    participant DB as Database<br/>(MySQL)
+    participant PortOne as Payment<br/>(PortOne)
 
     rect rgb(245, 248, 255)
         Note over User,DB: 1. 로그인 및 구독 상태 조회
@@ -192,3 +192,5 @@ erDiagram
 - **PortOne Payment Gateway**: 빌링키 발급, 결제 검증, 정기결제 스케줄링
 - **소셜 로그인 (Google OAuth)**: Google 계정 기반 로그인
 - **MySQL Event Scheduler**: 구독 상태 검증 및 무료 플랜 전환 처리
+
+
